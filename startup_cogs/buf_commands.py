@@ -20,7 +20,7 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
         if not wings_list:
             return await ctx.send(f'Unable to find any wing spots in {location}')
         sorted_wings_list = sorted(wings_list, key=lambda d: d['rating'], reverse=True)
-        response = '\n**TOP FIVE RESTAURANTS**\n'
+        response = '\n**TOP THREE RESTAURANTS**\n'
         for x, business in enumerate(sorted_wings_list[:3], start=1):
             if business['business_status'] != 'OPERATIONAL':
                 continue
