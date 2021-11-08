@@ -1,7 +1,6 @@
 import os
 import googlemaps
-import discord
-from discord.ext import commands, menus
+from discord.ext import commands
 
 key = os.getenv("maps_api")
 
