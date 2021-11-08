@@ -12,7 +12,7 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
     @commands.command(name='wings',
                       help='Get best wing locations for your area. Just pass your city or town! If no location is '
                            'passed, will return results for Buffalo')
-    async def wings(self, ctx, *, location):
+    async def wings(self, ctx, *location):
         if not location:
             location = 'Buffalo'
         gmaps = googlemaps.Client(key=key)
