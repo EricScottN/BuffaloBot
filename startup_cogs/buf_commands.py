@@ -2,7 +2,7 @@ import os
 import googlemaps
 from discord.ext import commands
 
-key = os.getenv("maps_api")
+key = os.getenv("MAPS_API")
 
 
 class BufCommands(commands.Cog, name='Buffalo Commands'):
