@@ -3,3 +3,6 @@ setuptools==58.5.3
 discord==1.7.3
 googlemaps~=4.5.3
 python-dotenv~=0.19.1
+requests~=2.26.0
+pandas~=1.4.1
+numpy~=1.22.3

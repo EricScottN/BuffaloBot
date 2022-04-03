@@ -18,6 +18,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix='buf ', intents=intents)
 
+
 @bot.event
 async def on_ready():
     try:
