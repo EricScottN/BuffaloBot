@@ -31,7 +31,7 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
             if snow_dict:
                 reply = 'It sure is! Currently there is:\n'
                 for k, v in snow_dict.items():
-                    reply += f'`{v} snow at the {k}`\n'
+                    reply += f'`{v} snow at the {k}`\n' if v else f'snow at the {k}\n'
                 return await ctx.send(reply)
             else:
                 return await ctx.send("Nope! It is not currently snowing at any local observation stations")
