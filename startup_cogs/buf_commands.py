@@ -13,18 +13,28 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
 
     @commands.command(name='snow')
     async def snow(self, ctx, time=None):
+        stations = {"KBUF": "Buffalo International Airport",
+                    "KDKK": "Dunkirk Airport",
+                    "KIAG": "Niagara Falls International Airport",
+                    "KJHW": "Chautauqua County/Jamestown Airport"}
+
+        snow_dict = {}
         if not time:
-            url = "https://api.weather.gov/stations/kbuf/observations/latest"
-            w = requests.get(url)
-            result = json.loads(w.content)['properties']
-            w.close()
-            snow = False
-            for present_weather in result['presentWeather']:
-                if 'snow' in present_weather['weather']:
-                    snow = True
-                    intensity = present_weather['intensity']
-                    return await ctx.send(f'It sure is! Currently there is {intensity} snow at the Buffalo Airport!')
-            return await ctx.send("Nope! No snow at the Buffalo Airport")
+            for station, name in stations.items():
+                url = f"https://api.weather.gov/stations/{station}/observations/latest"
+                w = requests.get(url)
+                result = json.loads(w.content)['properties']
+                w.close()
+                for present_weather in result['presentWeather']:
+                    if 'snow' in present_weather['weather']:
+                        snow_dict[name] = present_weather['intensity']
+            if snow_dict:
+                reply = 'It sure is! Currently there is:\n'
+                for k, v in snow_dict.items():
+                    reply += f'`{v} snow at the {k}`\n'
+                return await ctx.send(reply)
+            else:
+                return await ctx.send("Nope! It is not currently snowing at any local observation stations")
 
     @commands.command(name='wings',
                       help='Get best wing locations for your area. Just pass your city or town! If no location is '
