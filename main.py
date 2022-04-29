@@ -92,6 +92,7 @@ class MyHelp(commands.HelpCommand):
     async def send_cog_help(self, cog):
         pass
 
+
 class MyBot(commands.Bot):
     def __init__(self):
         super().__init__(
@@ -106,7 +107,7 @@ class MyBot(commands.Bot):
                 await bot.load_extension(f'startup_cogs.{filename[:-3]}')
 
     async def on_ready(self):
-       print(self.user, "is ready.")
+        print(self.user, "is ready.")
 
 
 if __name__ == '__main__':
