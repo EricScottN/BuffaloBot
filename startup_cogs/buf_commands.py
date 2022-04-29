@@ -35,6 +35,9 @@ async def process_station(interaction, stations, location, weather=None):
     for station in stations:
         url = f"https://api.weather.gov/stations/{station}/observations/latest"
         w = requests.get(url)
+        if not w.ok:
+            return await interaction.response.send_message("The NWS API doesn't want to talk to me right now. "
+                                                           "Try again later")
         result = json.loads(w.content)['properties']
         w.close()
         # If a location was entered
@@ -122,6 +125,9 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
         detailed forecast of that time period """
         url = 'https://api.weather.gov/gridpoints/BUF/78,43/forecast'
         w = requests.get(url)
+        if not w.ok:
+            return await interaction.response.send_message("The NWS API doesn't want to talk to me right now. "
+                                                           "Try again later")
         result = json.loads(w.content)['properties']
         periods = result['periods']
         w.close()
