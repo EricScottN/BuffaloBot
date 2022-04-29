@@ -14,5 +14,5 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
         print(sync)
 
 
-def setup(bot):
-    bot.add_cog(ModeratorCommands(bot))
+async def setup(bot):
+    await bot.add_cog(ModeratorCommands(bot))
