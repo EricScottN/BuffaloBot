@@ -107,6 +107,7 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
     @app_commands.describe(location='A location with an observation station to search for')
     async def current(self, interaction: discord.Interaction, condition: weather_types = None,
                       location: locations = None):
+        """ Get current weather conditions """
         if location:
             stations = [loc_station_map[location]]
         else:
