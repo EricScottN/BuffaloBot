@@ -1,7 +1,6 @@
 import os
 import requests
 import json
-import googlemaps
 from typing import Literal
 import calendar
 from datetime import date
@@ -149,32 +148,6 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
                 forecast += f"`{period['name']}: {period[forecast_type]}`\n"
             return await interaction.response.send_message(f'Here is a summary forecast for this week:\n'
                                                            f'{forecast}')
-
-    @commands.command(name='wings',
-                      help='Get best wing locations for your area. Just pass your city or town! If no location is '
-                           'passed, will return results for Buffalo')
-    async def wings(self, ctx, location=None):
-        try:
-            if not location:
-                location = 'Buffalo'
-            gmaps = googlemaps.Client(key=key)
-            wings_list = gmaps.places(f'wings in {location}, NY')['results']
-            if not wings_list:
-                return await ctx.send(f'Unable to find any wing spots in {location}')
-            sorted_wings_list = sorted(wings_list, key=lambda d: d['rating'], reverse=True)
-            response = '\n**TOP THREE RESTAURANTS**\n'
-            for x, business in enumerate(sorted_wings_list[:3], start=1):
-                if business['business_status'] != 'OPERATIONAL':
-                    continue
-                response += f'```{x}.\n'
-                response += f"NAME: {business['name']}\n"
-                response += f"ADDRESS: {business['formatted_address']}\n"
-                response += f"RATING: {business['rating']}\n"
-                response += f"TOTAL RATINGS: {business['user_ratings_total']}```\n"
-
-            await ctx.send(response)
-        except Exception as e:
-            print(e)
 
 
 async def setup(bot):
