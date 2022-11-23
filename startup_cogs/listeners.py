@@ -1,5 +1,6 @@
 from datetime import datetime
 from discord.ext import commands
+from string import punctuation
 import json
 
 WORD_EMOJI_MAP = {"tops": "<:tops:698582304297058345>",
@@ -61,7 +62,7 @@ class Listeners(commands.Cog):
     async def check_for_words(self, message):
         for check_word in WORD_EMOJI_MAP.keys():
             if check_word in message.content.lower() and \
-                    check_word in [word.lower() for word in message.content.split()]:
+                    check_word in [word.lower() for word in message.content.strip(punctuation).split()]:
                 reaction = WORD_EMOJI_MAP[check_word]
                 await message.add_reaction(reaction)
 
