@@ -28,7 +28,7 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        check_for = int(config['DEKEMA_ID'])
+        check_for = int(self.bot.bot_vars['DEKEMA_ID'])
         if message.author.id == check_for and \
                 any(ele in message.content for ele in ['girl', 'woman', 'women', 'date', 'dating', 'girls']):
             tracker = load_json("startup_cogs/tracker.json")

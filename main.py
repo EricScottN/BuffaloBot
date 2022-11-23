@@ -1,36 +1,68 @@
 import os
-import logging
+import logging.handlers
 import discord
-import env
+from typing import List, Optional
 from discord.ext import commands
-
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-
-intents = discord.Intents.all()
-
+from env import env
+from aiohttp import ClientSession
+import asyncio
 
 class MyBot(commands.Bot):
-    def __init__(self):
-        self.bot_vars = env.config
-        super().__init__(
-            command_prefix=commands.when_mentioned_or(),
-            intents=intents,
-        )
+    def __init__(self, *args,
+                 initial_extensions: List[str],
+                 web_client: ClientSession,
+                 testing_guild_id: Optional[int] = None,
+                 **kwargs):
+        intents = discord.Intents.all()
+        command_prefix = commands.when_mentioned
+        super().__init__(command_prefix=command_prefix, intents=intents, *args, **kwargs)
+        self.bot_vars = env
+        self.web_client = web_client
+        self.testing_guild_id = testing_guild_id
+        self.initial_extensions = initial_extensions
 
     async def setup_hook(self):
-        for filename in os.listdir('./startup_cogs'):
-            if filename.endswith('.py'):
-                await bot.load_extension(f'startup_cogs.{filename[:-3]}')
+        for extension in self.initial_extensions:
+            await self.load_extension(extension)
+
+        if self.testing_guild_id:
+            guild = discord.Object(self.testing_guild_id)
+            # We'll copy in the global commands to test with:
+            self.tree.copy_global_to(guild=guild)
+            # followed by syncing to the testing guild.
+            await self.tree.sync(guild=guild)
 
     async def on_ready(self):
         print(self.user, "is ready.")
 
 
-if __name__ == '__main__':
-    bot = MyBot()
-    try:
-        bot.run(bot.bot_vars['TOKEN'], log_handler=handler, log_level=logging.DEBUG)
-    except Exception as e:
-        print(e)
+async def main():
+    logger = logging.getLogger('discord')
+    logger.setLevel(logging.INFO)
 
+    handler = logging.handlers.RotatingFileHandler(
+        filename='discord.log',
+        encoding='utf-8',
+        maxBytes=32 * 1024 * 1024,  # 32 MiB
+        backupCount=5,  # Rotate through 5 files
+    )
+    dt_fmt = '%Y-%m-%d %H:%M:%S'
+    formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+
+    async with ClientSession() as our_client:
+        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.update']
+        async with MyBot(web_client=our_client,
+                         initial_extensions=exts) as bot:
+            await bot.start(env['TOKEN'])
+
+asyncio.run(main())
+
+# if __name__ == '__main__':
+#     bot = MyBot()
+#     try:
+#         bot.run(bot.bot_vars['TOKEN'], log_handler=handler, log_level=logging.DEBUG)
+#     except Exception as e:
+#         print(e)
