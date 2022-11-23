@@ -2,6 +2,9 @@ from datetime import datetime
 from discord.ext import commands
 import json
 
+WORD_EMOJI_MAP = {"tops": "<:tops:698582304297058345>",
+                  "wegmans": "<:wegmans:698581136204496906>",
+                  "bills": "<:bills:698581414949552229>"}
 
 def load_json(json_file):
     try:
@@ -53,10 +56,14 @@ class Listeners(commands.Cog):
             tracker["mentioned"] += 1
             dump_json(tracker, "startup_cogs/tracker.json")
 
-        if 'wegmans' in message.content.lower() and 'wegmans' in [word.lower() for word in message.content.split()]:
-            await message.add_reaction("<:wegmans:698581136204496906>")
-        if 'tops' in message.content.lower() and 'tops' in [word.lower() for word in message.content.split()]:
-            await message.add_reaction("<:tops:698582304297058345>")
+        await self.check_for_words(message)
+
+    async def check_for_words(self, message):
+        for check_word in WORD_EMOJI_MAP.keys():
+            if check_word in message.content.lower() and \
+                    check_word in [word.lower() for word in message.content.split()]:
+                reaction = WORD_EMOJI_MAP[check_word]
+                await message.add_reaction(reaction)
 
 
 async def setup(bot: commands.Bot) -> None:
