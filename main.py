@@ -7,6 +7,7 @@ from env import env
 from aiohttp import ClientSession
 import asyncio
 
+# comment to see if this works
 class MyBot(commands.Bot):
     def __init__(self, *args,
                  initial_extensions: List[str],
