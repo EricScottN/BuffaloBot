@@ -54,7 +54,7 @@ async def main():
 
 
     async with ClientSession() as our_client:
-        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.update']
+        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands']
         async with MyBot(web_client=our_client,
                          initial_extensions=exts) as bot:
             await bot.start(env['TOKEN'])
