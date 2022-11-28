@@ -1,8 +1,12 @@
-FROM python:3.9-slim-buster
+FROM python:3.10
+ENV PYTHONUNBUFFERED 1
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+WORKDIR /app
 
-COPY . .
+ADD requirements.txt /app/
 
-CMD ["python", "./main.py"]
+RUN python3 -m pip install -r requirements.txt --no-cache-dir
+
+ADD ./ /app/
+
+CMD ["python3", "/app/main.py"]
