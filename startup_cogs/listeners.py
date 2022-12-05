@@ -31,31 +31,21 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        check_for = int(self.bot.bot_vars['DEKEMA_ID'])
+        check_for = self.bot.bot_vars['DEKEMA_ID']
         if message.author.id == check_for and \
                 any(ele in message.content for ele in ['girl', 'woman', 'women', 'date', 'dating', 'girls']):
-            tracker = load_json("startup_cogs/tracker.json")
+            tracker = load_json("files/tracker.json")
             last_mentioned = datetime.fromisoformat(tracker["last_mentioned"])
             elapsed = message.created_at - last_mentioned
             days, hours, minutes, seconds = elapsed.days, elapsed.seconds // 3600, \
                                             elapsed.seconds // 60 % 60, elapsed.seconds % 60
             streak = tracker['streak']
-            to_send = f"<@{check_for}> It has been {days} {more_than(days, 'day')} {hours} " \
-                      f"{more_than(hours, 'hour')} {minutes} {more_than(minutes, 'minute')} and {seconds} " \
-                      f"{more_than(seconds, 'second')} since you last talked about girls or dating.\n\n"
             if days > streak:
-                to_send += f"You have beat your streak of {streak} days without talking about this stuff. Congrats, " \
-                           f"but you have still mentioned it {tracker['mentioned']} times and need to refrain from " \
-                           f"talking about it as you have been told numerous times to stop."
                 tracker["streak"] = days
-            else:
-                to_send += f"You have now talked about this stuff {tracker['mentioned']} " \
-                          f"times already. Please refrain from speaking about it further as you have been told " \
-                          f"numerous times to stop."
-            await message.channel.send(to_send)
+            await message.channel.send(f"It's been {days} {more_than(days, 'day')}")
             tracker["last_mentioned"] = str(message.created_at)
             tracker["mentioned"] += 1
-            dump_json(tracker, "startup_cogs/tracker.json")
+            dump_json(tracker, "files/tracker.json")
 
         await self.check_for_words(message)
 
