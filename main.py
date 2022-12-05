@@ -1,20 +1,22 @@
+import os
 import logging.handlers
 import asyncio
 import logging.handlers
 from typing import List, Optional
-
+from datetime import datetime
 import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 import asyncpg
 from env import env
+from startup_cogs.listeners import load_json
 
 
 # comment to see if this works
 class MyBot(commands.Bot):
     def __init__(self, *args,
                  initial_extensions: List[str],
-                 db_pool: asyncpg.Pool,
+                 db_pool: asyncpg.Pool = None,
                  web_client: ClientSession,
                  testing_guild_id: Optional[int] = None,
                  **kwargs):
@@ -39,7 +41,33 @@ class MyBot(commands.Bot):
             # followed by syncing to the testing guild.
             await self.tree.sync(guild=guild)
 
+        if self.db_pool:
+            tracker = load_json("./files/tracker.json")
+            async with self.db_pool.acquire() as conn:
+                async with conn.transaction():
+                    command = 'CREATE TABLE IF NOT EXISTS dekema_tracker ' \
+                              '(message_id BIGINT PRIMARY KEY, ' \
+                              'mentioned INT, ' \
+                              'last_mentioned TIMESTAMP, ' \
+                              'streak INT);'
+                    await conn.execute(command)
+                    print("Created Table dekema_tracker")
+
+                    try:
+                        async with conn.transaction():
+                            command = f"INSERT INTO dekema_tracker (message_id, mentioned, last_mentioned, streak) " \
+                                      f"VALUES ({tracker['message_id']}, " \
+                                      f"{tracker['mentioned']}, " \
+                                      f"'{tracker['last_mentioned']}', " \
+                                      f"{tracker['streak']});"
+                            await conn.execute(command)
+                            print("Inserted row")
+                            raise Exception
+                    except Exception as e:
+                        print(e)
+                        pass
     async def on_ready(self):
+        print(self.db_pool)
         print(self.user, "is ready.")
 
 
@@ -58,19 +86,33 @@ async def main():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    async with ClientSession() as our_client, asyncpg.create_pool(host="db", user="postgres", password="password") as pool:
+    max_retries = int(os.getenv("MAX_RETRIES", 0))
+
+    async with ClientSession() as our_client:
         exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands']
-        async with MyBot(db_pool=pool,
-                         web_client=our_client,
-                         initial_extensions=exts) as bot:
-            await bot.start(env['TOKEN'])
+        await db_conn(exts, max_retries, our_client)
+        await start_bot(exts, our_client, pool=None)
+
+
+async def db_conn(exts, max_retries, our_client):
+    sleep_time = 5
+    for i in range(max_retries):
+        try:
+            async with asyncpg.create_pool(host="db", user="postgres", password="password") as pool:
+                return await start_bot(exts, our_client, pool)
+        except Exception as e:
+            print(f"Couldn't connect to db: {e}\n\n Sleeping for {sleep_time} seconds")
+            await asyncio.sleep(5)
+            continue
+
+
+async def start_bot(exts, our_client, pool):
+    async with MyBot(db_pool=pool,
+                     web_client=our_client,
+                     initial_extensions=exts) as bot:
+        await bot.start(env['TOKEN'])
+
 
 asyncio.run(main())
 
 
-# if __name__ == '__main__':
-#     bot = MyBot()
-#     try:
-#         bot.run(bot.bot_vars['TOKEN'], log_handler=handler, log_level=logging.DEBUG)
-#     except Exception as e:
-#         print(e)
