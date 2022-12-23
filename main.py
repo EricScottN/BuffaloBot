@@ -40,6 +40,11 @@ class MyBot(commands.Bot):
             # followed by syncing to the testing guild.
             await self.tree.sync(guild=guild)
 
+    def is_testing_guild(self):
+        def predicate(ctx):
+            return ctx.guild.id == self.testing_guild_id
+        return commands.check(predicate)
+
     async def on_ready(self):
         print(self.db_pool)
         print(self.user, "is ready.")
@@ -48,7 +53,8 @@ class MyBot(commands.Bot):
 async def main():
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
-
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
     handler = logging.handlers.RotatingFileHandler(
         filename='discord.log',
         encoding='utf-8',
@@ -59,11 +65,13 @@ async def main():
     formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    root.addHandler(handler)
 
     max_retries = int(os.getenv("MAX_RETRIES", 0))
 
     async with ClientSession() as our_client:
-        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands']
+        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands',
+                'startup_cogs.update']
         await db_conn(exts, max_retries, our_client)
         await start_bot(exts, our_client, pool=None)
 
@@ -83,15 +91,8 @@ async def db_conn(exts, max_retries, our_client):
 async def start_bot(exts, our_client, pool):
     async with MyBot(db_pool=pool,
                      web_client=our_client,
-                     initial_extensions=exts) as bot:
+                     initial_extensions=exts,
+                     testing_guild_id=1021399801222397983) as bot:
         await bot.start(env['TOKEN'])
 
 asyncio.run(main())
-
-
-# if __name__ == '__main__':
-#     bot = MyBot()
-#     try:
-#         bot.run(bot.bot_vars['TOKEN'], log_handler=handler, log_level=logging.DEBUG)
-#     except Exception as e:
-#         print(e)
