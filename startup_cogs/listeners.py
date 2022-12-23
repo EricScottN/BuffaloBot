@@ -28,25 +28,16 @@ def more_than(time, time_string):
 class Listeners(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.last_mentioned = None
 
     @commands.Cog.listener()
     async def on_message(self, message):
         check_for = self.bot.bot_vars['DEKEMA_ID']
         if message.author.id == check_for and \
                 any(ele in message.content for ele in ['girl', 'woman', 'women', 'date', 'dating', 'girls']):
-            tracker = load_json("files/tracker.json")
-            last_mentioned = datetime.fromisoformat(tracker["last_mentioned"])
-            elapsed = message.created_at - last_mentioned
-            days, hours, minutes, seconds = elapsed.days, elapsed.seconds // 3600, \
-                                            elapsed.seconds // 60 % 60, elapsed.seconds % 60
-            streak = tracker['streak']
-            if days > streak:
-                tracker["streak"] = days
-            await message.channel.send(f"It's been {days} {more_than(days, 'day')}")
-            tracker["last_mentioned"] = str(message.created_at)
-            tracker["mentioned"] += 1
-            dump_json(tracker, "files/tracker.json")
-
+            mod_role = message.guild.get_role(self.bot.bot_vars['BUFFALO_MOD_ID'])
+            if mod_role:
+                await message.channel.send(f"{mod_role.mention}")
         await self.check_for_words(message)
 
     async def check_for_words(self, message):
