@@ -12,7 +12,7 @@ from env import env
 
 
 # comment to see if this works
-class MyBot(commands.Bot):
+class BuffaloBot(commands.Bot):
     def __init__(self, *args,
                  initial_extensions: List[str],
                  db_pool: asyncpg.Pool = None,
@@ -22,11 +22,11 @@ class MyBot(commands.Bot):
         intents = discord.Intents.all()
         command_prefix = commands.when_mentioned
         super().__init__(command_prefix=command_prefix, intents=intents, *args, **kwargs)
+        self.initial_extensions = initial_extensions
         self.db_pool = db_pool
-        self.bot_vars = env
         self.web_client = web_client
         self.testing_guild_id = testing_guild_id
-        self.initial_extensions = initial_extensions
+        self.bot_vars = env
 
     async def setup_hook(self):
         for extension in self.initial_extensions:
@@ -39,11 +39,6 @@ class MyBot(commands.Bot):
             self.tree.copy_global_to(guild=guild)
             # followed by syncing to the testing guild.
             await self.tree.sync(guild=guild)
-
-    def is_testing_guild(self):
-        def predicate(ctx):
-            return ctx.guild.id == self.testing_guild_id
-        return commands.check(predicate)
 
     async def on_ready(self):
         print(self.db_pool)
@@ -89,10 +84,10 @@ async def db_conn(exts, max_retries, our_client):
 
 
 async def start_bot(exts, our_client, pool):
-    async with MyBot(db_pool=pool,
-                     web_client=our_client,
-                     initial_extensions=exts,
-                     testing_guild_id=1021399801222397983) as bot:
+    async with BuffaloBot(db_pool=pool,
+                          web_client=our_client,
+                          initial_extensions=exts,
+                          testing_guild_id=1021399801222397983) as bot:
         await bot.start(env['TOKEN'])
 
 asyncio.run(main())
