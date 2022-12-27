@@ -87,11 +87,3 @@ async def start_bot(exts, our_client, pool):
         await bot.start(env['TOKEN'])
 
 asyncio.run(main())
-
-
-# if __name__ == '__main__':
-#     bot = MyBot()
-#     try:
-#         bot.run(bot.bot_vars['TOKEN'], log_handler=handler, log_level=logging.DEBUG)
-#     except Exception as e:
-#         print(e)
