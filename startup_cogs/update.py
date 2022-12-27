@@ -47,6 +47,7 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.is_owner()
     async def update(self, ctx: commands.Context):
         await ctx.message.delete()
+        await self.backup_server(ctx)
         if ctx.guild.id == self.bot.testing_guild_id:
             await self.stage_testing_guild(ctx)
         else:
@@ -72,82 +73,25 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
     @is_testing_guild()
     async def stage_testing_guild(self, ctx, *saves):
         await ctx.message.delete()
-        if saves:
-            await self.save_json(ctx, saves)
         role_sets = [region_delete_roles, change_roles, misc_delete_roles]
         for role_set in role_sets:
             await self.create_roles(ctx, role_set)
         await self.assign_random_del_roles(ctx)
         await self.copy_cat_and_channels(ctx)
 
-    async def save_json(self, ctx, saves):
-        discord_info = {}
-        file_path = "./files/discord_save.json"
-        if os.path.exists(file_path):
-            with open(file_path) as json_file:
-                discord_info = json.load(json_file)
-        buf_guild: discord.Guild = self.bot.get_guild(self.bot.bot_vars['BUFFALO_ID'])
-
-        save_mapping = {
-            "roles": buf_guild.roles,
-            "cats": buf_guild.categories,
-            "channels": buf_guild.channels
-        }
-
-        for save in saves:
-            if save not in save_mapping:
-                continue
-            discord_objects = save_mapping[save]
-            discord_info[save] = await self.get_discord_objects_info(ctx, discord_objects)
-
-        with open("./files/discord_info.json", "w") as j_file:
-            json.dump(discord_info, j_file, indent=1)
-
-    async def get_discord_objects_info(self, ctx, discord_objects):
-        result = []
-        for discord_object in discord_objects:
-            info = {
-                "id": discord_object.id,
-                "name": discord_object.name,
-                "exclude": await self.exclude(ctx, discord_object)
-            }
-            if isinstance(discord_object, discord.Role):
-                members = []
-                for member in discord_object.members:
-                    members.append({"id": member.id, "name": member.name})
-                info["members"] = members
-            result.append(info)
-        return result
-
-    def has_members_attribute(self, obj):
-        try:
-            obj.members
-            return True
-        except AttributeError:
-            return False
-
-    async def construct_discord_info(self, ctx, discord_info, save):
-        discord_info[save] = [
-            {"id": save.id,
-             "name": save.id,
-             "excluded": await self.exclude(ctx, save)}]
-        if save.members:
-            discord_info[save]["members"] = save.members
-
-    async def exclude(self, ctx, obj):
-        identifier = {"id": obj.id, "name": obj.name}
-
-        obj = await self.validate_exists(ctx, None, identifier)
-        return True if obj else False
-
     @commands.command(name="backup")
     @commands.is_owner()
     @is_testing_guild()
     async def backup_server(self, ctx: commands.Context):
-        backup = {"roles": [], "cats": [], "channels": []}
-        roles = ctx.guild.roles
-        for role in roles:
-            backup["roles"].append({"id": role.id, "name": role.name, "perms": role.permissions})
+        backup_mapping = {
+            "members": ctx.guild.members,
+            "roles": ctx.guild.roles,
+            "cats": ctx.guild.categories,
+            "channels": ctx.guild.channels
+        }
+
+
+
 
     @commands.command(name="copy")
     @commands.is_owner()
