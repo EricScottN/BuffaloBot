@@ -90,9 +90,6 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             "channels": ctx.guild.channels
         }
 
-
-
-
     @commands.command(name="copy")
     @commands.is_owner()
     @is_testing_guild()
