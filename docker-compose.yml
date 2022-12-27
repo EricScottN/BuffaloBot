@@ -14,6 +14,8 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+        environment:
+            - MAX_RETRIES=5
 
 volumes:
   database:
