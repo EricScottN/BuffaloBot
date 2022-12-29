@@ -149,17 +149,8 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
         # replace buffalo roles with new buffalo role
         await self.replace_buffalo_roles(ctx)
 
-        # delete all roles
-        await self.delete_all(ctx)
-
-        # edit existing roles
-        await self.edit_roles(ctx, change_roles)
-
         # reset all role permissions to false
         await self.reset_all_perms(ctx)
-
-        # Create new categories
-        # Will need all role objects to set perms
 
     @commands.command(name="stage")
     @commands.is_owner()
@@ -304,15 +295,6 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                                     r.name == identifier.get("name"), ctx.guild.roles)
         return result
 
-    async def check_replace_role(self, member):
-        result = next((role for role in region_delete_roles if role["role"] in member.roles), None)
-        if result:
-            await self.replace_member_role(member)
-
-    @staticmethod
-    async def replace_member_role(member):
-        await member.add_roles(buffalo_role)
-
     async def get_roles_in_role_set(self, ctx, role_set: List[Dict]):
         for role in role_set:
             await self.get_by_id_or_name(ctx, role)
@@ -322,7 +304,6 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
     @is_testing_guild()
     async def replace_buffalo_roles(self, ctx):
         await self.create_roles(ctx, update["create"]["roles"])
-        await self.replace_old_roles(ctx, new_roles)
 
     async def new_replace_roles(self, ctx: commands.Context):
         members = ctx.guild.members
@@ -333,11 +314,9 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             member_role_names = [role.name for role in member_roles]
             role = set(member_role_names).intersection(region_delete_roles)
             if role:
+                pass
 
 
-    async def replace_old_roles(self, ctx, role_set: List[Dict]):
-        for role in role_set:
-            await self.get_and_replace_role(ctx, role)
 
     async def get_and_replace_role(self, ctx, role):
         add_role = role.get("role", await self.validate_exists(ctx, None, role))
