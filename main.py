@@ -70,8 +70,7 @@ async def main():
     max_retries = int(os.getenv("MAX_RETRIES", 0))
 
     async with ClientSession() as our_client:
-        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands',
-                'startup_cogs.update']
+        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands']
         await db_conn(exts, max_retries, our_client)
         await start_bot(exts, our_client, pool=None)
 
