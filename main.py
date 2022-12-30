@@ -62,6 +62,11 @@ async def main():
     logger.addHandler(handler)
     root.addHandler(handler)
 
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(formatter)
+    root.addHandler(ch)
+
     max_retries = int(os.getenv("MAX_RETRIES", 0))
 
     async with ClientSession() as our_client:
