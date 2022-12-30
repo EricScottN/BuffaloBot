@@ -12,18 +12,27 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.guild_only()
     @commands.is_owner()
     async def sync(self, ctx: Context, guilds: Greedy[discord.Object],
-                   spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+                   spec: Optional[Literal["~", "*", "^", "-"]] = None) -> None:
         if not guilds:
             if spec == "~":
+                # sync current guild
                 synced = await ctx.bot.tree.sync(guild=ctx.guild)
             elif spec == "*":
+                # copies all global app commands to current guild and syncs
                 ctx.bot.tree.copy_global_to(guild=ctx.guild)
                 synced = await ctx.bot.tree.sync(guild=ctx.guild)
             elif spec == "^":
+                # clears all commands from the current guild target and syncs (removes guild commands)
                 ctx.bot.tree.clear_commands(guild=ctx.guild)
                 await ctx.bot.tree.sync(guild=ctx.guild)
                 synced = []
+            elif spec == "-":
+                # clears global app commands and syncs globally
+                ctx.bot.tree.clear_commands(guild=None)
+                await ctx.bot.tree.sync()
+                synced = []
             else:
+                # Global sync
                 synced = await ctx.bot.tree.sync()
             await ctx.send(
                 f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
