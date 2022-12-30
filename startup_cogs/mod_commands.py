@@ -12,7 +12,7 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.guild_only()
     @commands.is_owner()
     async def sync(self, ctx: Context, guilds: Greedy[discord.Object],
-                   spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+                   spec: Optional[Literal["~", "*", "^", "-"]] = None) -> None:
         if not guilds:
             if spec == "~":
                 synced = await ctx.bot.tree.sync(guild=ctx.guild)
@@ -22,6 +22,10 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
             elif spec == "^":
                 ctx.bot.tree.clear_commands(guild=ctx.guild)
                 await ctx.bot.tree.sync(guild=ctx.guild)
+                synced = []
+            elif spec == "-":
+                ctx.bot.tree.clear_commands(guild=None)
+                await ctx.bot.tree.sync()
                 synced = []
             else:
                 synced = await ctx.bot.tree.sync()
