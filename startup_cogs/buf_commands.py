@@ -8,7 +8,6 @@ from discord import app_commands
 
 from helpers.role_select import RoleView
 from helpers.weather import default_stations, loc_station_map, required_times, locations, weather_types, process_station
-from helpers.municipalities import municipalities_values
 
 class BufCommands(commands.Cog, name='Buffalo Commands'):
     def __init__(self, bot) -> None:
@@ -60,15 +59,13 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
             return await interaction.response.send_message(f'Here is a summary forecast for this week:\n'
                                                            f'{forecast}')
 
-    municipality = app_commands.Group(name="municipality", description="Select your municipality role")
+    municipality = app_commands.Group(name="municipality",
+                                      description="Select your municipality role. "
+                                                  "This will grant you access to the server")
 
     @municipality.command(name="select")
     async def select_municipality(self, interaction: discord.Interaction):
-        roles = []
-        for role in interaction.guild.roles:
-            if role.name in municipalities_values:
-                roles.append(role)
-        view = RoleView(roles)
+        view = await RoleView.construct_view(interaction)
         await interaction.response.send_message('Select', view=view, ephemeral=True)
 
 

@@ -2,11 +2,22 @@ from typing import Optional, Literal
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context, Greedy
-
+from helpers.role_select import RoleView, RegionMessage
 
 class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.command(name="generate_region_select")
+    @commands.guild_only()
+    @commands.is_owner()
+    async def generate_region_select(self, ctx: Context, *channel: commands.GuildChannelConverter):
+        if not channel:
+            channel = ctx.channel
+        message = RegionMessage()
+        view = await RoleView.construct_view(ctx)
+        file, embed = generate_region_embed()
+        await channel.send(embed=embed, view=view, file=file)
 
     @commands.command()
     @commands.guild_only()
