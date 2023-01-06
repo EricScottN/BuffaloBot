@@ -10,6 +10,8 @@ from discord.ext import commands
 import asyncpg
 from env import env
 
+from helpers.role_select import RoleView
+
 
 # comment to see if this works
 class BuffaloBot(commands.Bot):
@@ -39,6 +41,7 @@ class BuffaloBot(commands.Bot):
             self.tree.copy_global_to(guild=guild)
             # followed by syncing to the testing guild.
             await self.tree.sync(guild=guild)
+            self.add_view(RoleView())
 
     async def on_ready(self):
         print(self.db_pool)
@@ -70,7 +73,8 @@ async def main():
     max_retries = int(os.getenv("MAX_RETRIES", 0))
 
     async with ClientSession() as our_client:
-        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands']
+        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands',
+                'startup_cogs.update']
         await db_conn(exts, max_retries, our_client)
         await start_bot(exts, our_client, pool=None)
 
