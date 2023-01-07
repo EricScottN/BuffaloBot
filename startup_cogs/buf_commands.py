@@ -65,8 +65,8 @@ class BufCommands(commands.Cog, name='Buffalo Commands'):
 
     @municipality.command(name="select")
     async def select_municipality(self, interaction: discord.Interaction):
-        view = await RoleView.construct_view(interaction)
-        await interaction.response.send_message('Select', view=view, ephemeral=True)
+        view = RoleView.create_with_ctx(interaction)
+        await interaction.response.send_message(embed=view.embed, file=view.file, view=view, ephemeral=True)
 
 
 async def setup(bot: commands.Bot) -> None:

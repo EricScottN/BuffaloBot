@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 import logging
 import discord
 from discord import Interaction
@@ -26,7 +26,7 @@ class RoleSelect(discord.ui.Select):
             await interaction.response.send_message(f"You already have the role {role.mention}", ephemeral=True)
             return
         for member_role in interaction.user.roles:
-            if member_role.name in RoleView.MUNICIPALITIES:
+            if member_role.name in municipalities:
                 await interaction.user.remove_roles(member_role)
                 removed_role = member_role
                 message += f"Removed role {removed_role.mention} | "
@@ -35,8 +35,6 @@ class RoleSelect(discord.ui.Select):
 
 
 class RoleView(discord.ui.View):
-    MUNICIPALITIES = ['Amherst', 'Aurora', 'Buffalo', 'Cheektowaga', 'Clarence', 'Evans', 'Grand Island', 'Hamburg',
-                      'Lackawanna', 'Lancaster', 'Orchard Park', 'Tonawanda', 'West Seneca', 'Nearby', 'Just Visiting']
 
     def __init__(self, ctx=None, embed=None, file=None, roles=None):
         super().__init__(timeout=None)
@@ -48,28 +46,55 @@ class RoleView(discord.ui.View):
 
     @classmethod
     def create_with_ctx(cls, ctx):
-        roles = cls.get_municipality_roles(ctx, cls.MUNICIPALITIES)
+        roles = get_municipality_roles(ctx, municipalities)
+        embed = generate_region_embed(roles)
         return cls(ctx=ctx,
-                   embed=cls.generate_region_embed(),
+                   embed=embed,
                    file=discord.File("files/erie_county_map.jpg"),
                    roles=roles)
 
-    @staticmethod
-    def get_municipality_roles(ctx, municipalities):
-        roles = []
-        for role in ctx.guild.roles:
-            if role.name in municipalities:
-                logger.info(f"adding role {role.name} to role select")
-                roles.append(role)
-        return roles
 
-    @staticmethod
-    def generate_region_embed():
-        embed = discord.Embed(
-            title="Municipality Selection",
-            description="Select a municipality to gain access to the server.\n\n"
-                        "Below is a map of cities and towns in WNY to help aide in your selection."
-        )
-        embed.set_image(url="attachment://erie_county_map.jpg")
+municipalities = ['Amherst', 'Aurora', 'Buffalo', 'Cheektowaga', 'Clarence', "Eden", 'Evans', 'Grand Island',
+                  'Hamburg', 'Lackawanna', 'Lancaster', 'Lockport', 'Niagara Falls', 'North Tonawanda',
+                  'Orchard Park', 'Tonawanda', 'West Seneca', 'Nearby', 'Just Visiting']
 
-        return embed
+
+def get_municipality_roles(ctx, municipalities):
+    roles = []
+    for role in ctx.guild.roles:
+        if role.name in municipalities:
+            logger.info(f"adding role {role.name} to role select")
+            roles.append(role)
+    return roles
+
+
+def generate_region_embed(roles):
+    embed = discord.Embed(
+        title="Municipality Selection",
+        description="Select a municipality to gain access to the server.\n\n"
+                    "If you don't currently reside in Buffalo, you can select a Miscellaneous role."
+    )
+    embed.set_image(url="attachment://erie_county_map.jpg")
+    embed.add_field(name="Buffalo Cities and Towns",
+                    value=construct_embed_values(
+                        roles, ['Nearby', 'Just Visiting', 'Lockport', 'North Tonawanda', 'Niagara Falls'], False),
+                    inline=False)
+    embed.add_field(name="Niagara County Cities",
+                    value=construct_embed_values(
+                        roles, ['Lockport', 'North Tonawanda', 'Niagara Falls'], True),
+                    inline=False)
+    embed.add_field(name="Miscellaneous",
+                    value=construct_embed_values(
+                        roles, ['Nearby', 'Just Visiting'], True),
+                    inline=False)
+    return embed
+
+
+def construct_embed_values(roles: List[discord.Role], valid: List, in_list: bool):
+    if in_list:
+        valid_roles = [role.name for role in roles if role.name in valid]
+    else:
+        valid_roles = [f"`{role.name}`" for role in roles if role.name not in valid]
+    if not valid_roles:
+        return "No roles found"
+    return " | ".join(valid_roles)
