@@ -31,7 +31,7 @@ update = {
         "roles": [
             {"id": None, "name": "Amherst", "colour": "#ff8861", "display_icon": "🦬", "hoist": True},
             {"id": None, "name": 'Aurora', "colour": "#c097d8", "display_icon": "🦬", "hoist": True},
-            {"id": None, "name": "Buffalo", "colour": "#002174", "display_icon": 719580209799626812, "hoist": True},
+            {"id": None, "name": "Buffalo", "colour": "#1a5ee6", "display_icon": 719580209799626812, "hoist": True},
             {"id": None, "name": "Cheektowaga", "colour": "#80c551", "display_icon": "🎲", "hoist": True},
             {"id": None, "name": "Clarence", "colour": "#bebd65", "display_icon": "🦬", "hoist": True},
             {"id": None, "name": "Eden", "colour": "#51c596", "display_icon": "❄", "hoist": True},
@@ -48,28 +48,30 @@ update = {
             {"id": None, "name": "Lockport", "colour": "#edec7e", "display_icon": "💦", "hoist": True}
         ],
         "categories": [
-            {"id": None, "name": "🦬| Buffalo"},
             {"id": None, "name": "Getting Started"},
             {"id": None, "name": "Informational"},
+            {"id": None, "name": "🦬| Buffalo"},
             {"id": None, "name": "Interests and Hobbies"},
             {"id": None, "name": "Archive"}
         ],
         "channels": [
-            {"id": None, "name": "🎤-suggestions", "category": "Informational", "type": "forum"},
-            {"id": None, "name": "💵-buy-sell-jobs", "category": "🦬| Buffalo", "type": "forum"},
-            {"id": None, "name": "🧻-politics", "category": "Interests and Hobbies", "type": "forum"}
+            {"id": None, "name": "🎤-suggestions", "category": "Informational", "type": "forum", "topic": "Have a suggestion for the server? Drop a post and we can discuss it!"},
+            {"id": None, "name": "🐶-bflo-pets", "category": "🦬| Buffalo", "type": "forum", "topic": "Post pictures of your pets!"},
+            {"id": None, "name": "💵-bflo-ads-n-jobs", "category": "🦬| Buffalo", "type": "forum", "topic": "Classified ads and job postings in the WNY area. *NO CRYPTO OR SCAMS ALLOWED OR YOU WILL BE BANNED*"},
+            {"id": None, "name": "🧻-politics", "category": "Interests and Hobbies", "type": "forum", "topic": "Politics 2.0 - Heavily moderated - Discuss national politics"},
+            {"id": None, "name": "🎲-dice-board-gaming", "category": "Interests and Hobbies", "type": "text", "topic": "Nerd out and talk about all things board and dice games"}
         ]
     },
     "edit": {
         "roles": [
             {"id": 699934182822117396, "name": "Niagara Falls", "permissions": permissions['regions'],
              "colour": "#edec7e", "display_icon": "💦"},
-            {"id": 699934215684489306, "name": "Expat", "new_name": "Just Visiting", "colour": discord.Colour.default(),
+            {"id": 699934215684489306, "name": "Expat", "new_name": "Just Visiting", "colour": "#0",
              "permissions": permissions['regions']},
             {"id": 699934108314501150, "name": "Northtowns", "permissions": permissions['regions'],
-             "color": discord.Colour.default()},
+             "color": "#0"},
             {"id": 699934144817528843, "name": "Southtowns", "permissions": permissions['regions'],
-             "color": discord.Colour.default()},
+             "color": "#0"},
             {"id": 696073200987013241, "name": "Admins", "permissions": permissions['mods']},
             {"id": 696078290619990026, "name": "Mods", "permissions": permissions['mods']},
             {"id": 699649445024759899, "name": "Server Booster", "permissions": permissions['elevated']},
@@ -97,36 +99,33 @@ update = {
         "channels": [
             {"id": 696171963240022068, "name": "📝-welcome-rules", "category": "Getting Started"},
             {"id": 696075954363301898, "name": "📯-announcements", "category": "Informational"},
-            {"id": 699928543798493226, "name": "🦬-set-your-roles-first", "new_name": "get-started", "category": None},
-            {"id": 729031489244626954, "name": "introductions", "new_name": "👋-bflo-intros", "category": "🦬| Buffalo"},
-            {"id": 696452671598493696, "name": "🎫-things-to-do", "new_name": "🎫-bflo-fun", "category": "🦬| Buffalo"},
             {"id": 696452764427092081, "name": "❓-help-desk", "category": "Informational"},
+            {"id": 699928543798493226, "name": "🦬-set-your-roles-first", "new_name": "get-started", "category": None},
             {"id": 696071995984707684, "name": "💬-general", "category": "🦬| Buffalo"},
-            {"id": 696924737242136689, "name": "🎤-suggestions", "category": "Archive"},
-            {"id": 696094626284568788, "name": "💵-buy-sell-jobs", "category": "Archive"},
-            {"id": 719626310841925663, "name": "channel-select", "new_name": "🪪-bflo-roles", "category": "🦬| Buffalo"},
-            {"id": 969344166922448936, "name": "🤖-bot-spam", "category": "Archive"},
-            {"id": 1020542502761136148, "name": "📺-news", "new_name": "📺-bflo-news", "category": "🦬| Buffalo"},
-            {"id": 696206515211599912, "name": "🧻-politics", "category": "Archive"},
-            {"id": 696081453183926283, "name": "🏒-sabres", "category": "Archive"},
-            {"id": 696081227421057105, "name": "🏈-bills", "new_name": "🏈🏒-bflo-sports", "category": "🦬| Buffalo"},
-            {"id": 696098329410404413, "name": "🍴food-and-dining", "new_name": "🍴🍺-bflo-food-and-drink",
-             "category": "🦬| Buffalo"},
+            {"id": 729031489244626954, "name": "introductions", "new_name": "👋-bflo-intros", "category": "🦬| Buffalo"},
+            {"id": 719626310841925663, "name": "channel-select", "new_name": "🪪-bflo-roles", "category": "🦬| Buffalo", "topic": "Get some character and pick up fun server roles here"},
+            {"id": 696452671598493696, "name": "🎫-things-to-do", "new_name": "🎫-bflo-fun", "category": "🦬| Buffalo", "topic": "Discuss fun stuff to do, or things that you have done, in this channel"},
+            {"id": 696098329410404413, "name": "🍴food-and-dining", "new_name": "🍴🍺-bflo-food-and-drink", "category": "🦬| Buffalo", "topic": "Discuss all things food and drink here. Cooking, restaurants, food, and booze - it's all on the table!"},
+            {"id": 696081227421057105, "name": "🏈-bills", "new_name": "🏈🏒-bflo-sports", "category": "🦬| Buffalo", "topic": "Your home for Bills/Sabres/Bandits/Bisons talk!"},
+            {"id": 1020542502761136148, "name": "📺-news", "new_name": "📺-bflo-news", "category": "🦬| Buffalo", "topic": "News stories and discussion that pertain to Buffalo or WNY"},
+            {"id": 696101473515339927, "name": "🐶-buffalo-pets", "new_name": "🐶-bflo-pets", "category": "Archive"},
+            {"id": 718347467476697169, "name": "📷-pics", "new_name": "📷-bflo-pics", "category": "🦬| Buffalo"},
             {"id": 696207813948473394, "name": "🎮-gaming", "category": "Interests and Hobbies"},
-            {"id": 696101473515339927, "name": "🐶-buffalo-pets", "new_name": "🐶-bflo-pets", "category": "🦬| Buffalo"},
-            {"id": 698249578595614800, "name": "🎨🏎-hobbies", "category": "Archive"},
-            {"id": 698705467500920892, "name": "🎧-music-theater-arts", "new_name": "🎧🍿📚-entertainment",
-             "category": "Interests and Hobbies"},
-            {"id": 698659695577137262, "name": "🖥-tech", "category": "Interests and Hobbies"},
-            {"id": 1021958475401658429, "name": "🌱-lawn-and-garden", "new_name": "🌱-lawn-garden-diy",
-             "category": "Interests and Hobbies"},
+            {"id": 698249578595614800, "name": "🎨🏎-hobbies", "new_name": "🏎-car-talk", "category": "Interests and Hobbies", "topic": "Vroom-Vroom - Talk about cars here"},
+            {"id": 698705467500920892, "name": "🎧-music-theater-arts", "new_name": "🎧🍿📚-entertainment", "category": "Interests and Hobbies", "topic": "Your one stop shop for music, movies, and books"},
+            {"id": 698659695577137262, "name": "🖥-tech", "category": "Interests and Hobbies", "topic": "Talk about software, networking, IT, whatever it may be. Just don't ask for help fixing your printer"},
+            {"id": 1021958475401658429, "name": "🌱-lawn-and-garden", "new_name": "🌱-lawn-garden-diy", "category": "Interests and Hobbies", "topic": "Post about your DIY projects, your garden, home improvements, etc, here"},
             {"id": 700111188100644934, "name": "🙉-memes", "category": "Interests and Hobbies"},
             {"id": 960855040413802596, "name": "🤷-off-topic", "category": "Archive"},
             {"id": 702544939300683796, "name": "🍿-movies-and-tv", "category": "Archive"},
-            {"id": 718347467476697169, "name": "📷-pics", "new_name": "📷-bflo-pics", "category": "🦬| Buffalo"},
             {"id": 1034491595262799992, "name": "📚-books", "category": "Archive"},
             {"id": 697659404497190943, "name": "🚣🏾-sports", "category": "Archive"},
-            {"id": 1060316382039920670, "name": "🍺-alcoholic-beverages", "category": "Archive"}
+            {"id": 1060316382039920670, "name": "🍺-alcoholic-beverages", "category": "Archive"},
+            {"id": 696924737242136689, "name": "🎤-suggestions", "category": "Archive"},
+            {"id": 696094626284568788, "name": "💵-buy-sell-jobs", "category": "Archive"},
+            {"id": 969344166922448936, "name": "🤖-bot-spam", "category": "Archive"},
+            {"id": 696206515211599912, "name": "🧻-politics", "category": "Archive"},
+            {"id": 696081453183926283, "name": "🏒-sabres", "category": "Archive"}
         ]
     },
     "delete": {
@@ -174,7 +173,7 @@ update = {
         ],
         "categories": [
             {"id": 1058585359551836212, "name": "Admin"},
-            {"id": 696096508910633000, "name": "Admin"},
+            {"id": 696096508910633000, "name": "Mods"},
             {"id": 1028441474255310960, "name": "Real Ones"},
             {"id": 1007627422667128932, "name": "Regulars"},
             {"id": 696068936483209218, "name": "Voice Channels"},
@@ -237,6 +236,80 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
         with open("servers_info.json", "w") as json_file:
             json.dump(info, json_file, indent=1)
 
+    @commands.command(name="update")
+    @commands.is_owner()
+    async def update(self, ctx: commands.Context):
+        if ctx.guild.id == ctx.bot.testing_guild_id:
+            await self.delete_from_test(ctx)
+            await self.stage_testing_guild(ctx)
+
+        # Clear all category and channel overwrites
+        logger.info("Clearing category and channel overwrites..")
+        await self.clear_channel_overwrites(ctx)
+
+        # Clear all role permissions (except bot managed)
+        logger.info("Clearing role permissions..")
+        await self.clear_role_permissions(ctx)
+
+        # TODO Test this with display icon in Buffalo server
+        # Create new region roles
+        logger.info("Creating roles..")
+        await self.create_roles(ctx, update["create"]["roles"])
+
+        # Edit existing roles
+        logger.info("Editing roles..")
+        await self.edit_roles(ctx)
+
+        # Replace Existing Buffalo role with new Buffalo role
+        logger.info("Replacing Buffalo roles with new Buffalo roles..")
+        await self.replace_buffalo_roles(ctx)
+
+        # Delete categories
+        logger.info("Deleting categories..")
+        await self.delete_categories(ctx)
+
+        # Create new categories with overwrites
+        logger.info("Creating new categories..")
+        await self.create_categories(ctx, update["create"]["categories"])
+
+        # Update existing category overwrites
+        logger.info("Editing existing categories..")
+        # TODO put some logging in this function
+        await self.edit_categories(ctx)
+
+        # TODO test this with a single forum channel in Buffalo server
+        # Create new channels
+        logger.info("Creating new channels..")
+        await self.create_channels(update["create"]["channels"], ctx)
+
+        # Move existing channels to correct categories (including archive)
+        logger.info("Editing existing channels..")
+        await self.edit_channels(ctx)
+
+        logger.info("Syncing channel perms..")
+        await self.sync_channel_permissions(ctx)
+
+        # Delete roles
+        logger.info("Deleting roles..")
+        await self.delete_roles(ctx)
+
+        logger.info("Generating new welcome embed..")
+        await self.generate_welcome_embed(ctx, discord.utils.find(
+            lambda c: c.name == "📝-welcome-rules", ctx.guild.channels))
+
+        logger.info("Generating new getting started..")
+        await self.create_getting_started(ctx, discord.utils.find(
+            lambda c: c.name == "get-started", ctx.guild.channels))
+
+        await self.create_send_roleview(ctx, discord.utils.find(
+            lambda c: c.name == "🪪-bflo-roles", ctx.guild.channels))
+        logger.info("UPDATE COMPLETE")
+
+    async def sync_channel_permissions(self, ctx):
+        for channel in ctx.guild.channels:
+            if not channel.permissions_synced:
+                await channel.edit(sync_permissions=True)
+
     @commands.command(name="test_delete")
     @commands.is_owner()
     @is_testing_guild()
@@ -272,13 +345,20 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.is_owner()
     async def delete(self, ctx, *delete_elements):
         if "categories" in delete_elements:
-            for category in update["delete"]["categories"]:
-                delete_cat = await self.get_by_id_or_name(ctx, category, "category")
-                if delete_cat:
-                    await delete_cat.delete()
+            await self.delete_categories(ctx)
         if "roles" in delete_elements:
-            for role in update["delete"]["roles"]:
-                delete_role = await self.get_by_id_or_name(ctx, role, "role")
+            await self.delete_roles(ctx)
+
+    async def delete_roles(self, ctx):
+        for role in update["delete"]["roles"]:
+            delete_role = await self.get_by_id_or_name(ctx, role, "role")
+            await delete_role.delete()
+
+    async def delete_categories(self, ctx):
+        for category in update["delete"]["categories"]:
+            delete_cat = await self.get_by_id_or_name(ctx, category, "category")
+            if delete_cat:
+                await delete_cat.delete()
 
     @commands.command(name="stage")
     @commands.is_owner()
@@ -324,15 +404,23 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             return
         region_replace_roles = [region_delete_role["name"] for region_delete_role in region_delete_roles]
         members = ctx.guild.members
+        replace_dict = []
         for member in members:
             member_roles = member.roles
             member_role_names = [role.name for role in member_roles]
-            role = set(member_role_names).intersection(region_replace_roles)
-            if not role:
+            roles = set(member_role_names).intersection(region_replace_roles)
+            if not roles:
                 continue
             if not replace_role:
                 continue
+            replace_dict.append({"member_id": member.id,
+                                 "member_name": member.name,
+                                 "member_roles": [role for role in roles]
+                                 })
             await member.add_roles(replace_role)
+        with open('files/replaced_buffalo_roles.json', 'w') as f:
+            # Write the JSON object to the file
+            json.dump(replace_dict, f)
 
     @commands.command(name="create")
     @commands.is_owner()
@@ -363,17 +451,10 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             if not edit_channel:
                 logger.info(f"Unable to find channel {channel['name']}.. skipping")
                 continue
-            if edit_channel.name == "🦬-set-your-roles-first":
-                overwrites = {}
-                for role in update["edit"]["roles"] + update["create"]["roles"]:
-                    overwrite_role = await self.get_by_id_or_name(ctx, role, "role")
-                    if overwrite_role:
-                        overwrites.update({overwrite_role: discord.PermissionOverwrite(read_messages=False)})
-                overwrites.update({ctx.guild.default_role: discord.PermissionOverwrite(read_messages=True,
-                                                                                       read_message_history=True)})
-                # need to create embed here for new region roles and set permissions
+
             new_name = channel.get("new_name", edit_channel.name)
             new_category = discord.utils.find(lambda c: c.name == channel.get("category"), ctx.guild.categories)
+            new_topic = channel.get("topic", edit_channel.topic)
             if edit_channel.category == new_category \
                     and edit_channel.name == new_name \
                     and (edit_channel.permissions_synced or not edit_channel.category):
@@ -383,11 +464,123 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                 logger.info(f"Attempting to edit {edit_channel.name}")
                 logger.info(f"Old name - {edit_channel.name} -> {new_name}")
                 logger.info(f"Moving to category -> {new_category}")
-                new_channel = await edit_channel.edit(name=new_name, category=new_category, sync_permissions=True)
+                new_channel = await edit_channel.edit(name=new_name, category=new_category, topic=new_topic,
+                                                      sync_permissions=True)
                 logger.info(f"Successfully edited {new_channel.name} | Category - {new_channel.category}")
             except Exception as e:
                 logger.warning(f"Unable to edit channel -  {e}")
             await asyncio.sleep(2)
+
+    @commands.command(name="welcome")
+    @commands.is_owner()
+    async def welcome(self, ctx: commands.Context):
+        await self.generate_welcome_embed(ctx, ctx.channel)
+
+    async def generate_welcome_embed(self, ctx, edit_channel: discord.TextChannel):
+        async for message in edit_channel.history(limit=200):
+            await message.delete()
+            await asyncio.sleep(2)
+
+        embed, file = await self.create_welcome_embed()
+        await edit_channel.send(embed=embed, file=file)
+
+        embed = await self.create_rules_embed()
+        await edit_channel.send(embed=embed)
+
+        embed = await self.create_channel_embed(ctx)
+        await edit_channel.send(embed=embed)
+
+        embed = await self.create_staff_embed(ctx)
+        await edit_channel.send(embed=embed)
+
+    async def create_rules_embed(self):
+        embed = discord.Embed(
+            title="Rules",
+            description="1️⃣ Be respectful of others' opinions and ideas. No Personal Attacks.\n"
+                        "2️⃣ No NSFW or NSFL material.\n"
+                        "3️⃣ No racism, sexism, etc. This includes promoting racial supremacy, nazism, "
+                        "terrorism or other hateful ideas.\n "
+                        "4️⃣ No spamming. Repeated postings of the same/similar content in a time frame that "
+                        "prevents other members from engaging with the server. "
+                        "Rehashing topics, especially when asked to stop, is considered spam\n"
+                        "5️⃣ No soliciting or scams.\n"
+                        "6️⃣ No doxxing. This includes posting identifying personal images or non-public "
+                        "information of people without consent.\n "
+                        "7️⃣ No threats of any kind, or advocating for the death or injury of others.\n "
+                        "8️⃣ No alt accounts.\n "
+                        "9️⃣ No low effort/shit-posting. Contributing nothing of value towards conversation "
+                        "and/or derailing discussions to get a reaction is a violating this rule.\n "
+                        "🔟 Do not send repeated unsolicited DMs or friend requests to any member(s) of this "
+                        "server.\n ")
+        return embed
+
+    async def create_welcome_embed(self):
+        embed = discord.Embed(
+            title="WELCOME TO THE BUFFALO DISCORD SERVER!",
+            description="Our mission statement is simple: Connect locals and transplants in the City of Good "
+                        "Neighbors together, both in real life and on the server, and provide help and "
+                        "resources members need to live a fulfilling life in Buffalo and around WNY!"
+        )
+        file = discord.File("files/Flag_of_Buffalo,_New_York.png")
+        embed.set_image(url="attachment://Flag_of_Buffalo,_New_York.png")
+
+        return embed, file
+
+    async def create_staff_embed(self, ctx):
+        embed = discord.Embed(
+            title="Staff Members"
+        )
+        mod_roles = [ctx.guild.get_role(696073200987013241), ctx.guild.get_role(696078290619990026),
+                     ctx.guild.get_role(1021403746326036592), ctx.guild.get_role(1029376856945868810)]
+        for role in mod_roles:
+            if not role:
+                continue
+            value = ""
+            for member in role.members:
+                value += f"{member.mention}\n"
+            embed.add_field(name=role.name,
+                            value=value,
+                            inline=False)
+        return embed
+
+    async def create_channel_embed(self, ctx):
+        embed = discord.Embed(
+            title="Channel Directory"
+        )
+        for category in ctx.guild.categories:
+            if category.id in [cat["id"] for cat in update["edit"]["categories"]] or category.name != "Archive":
+                continue
+            value = ""
+            for channel in category.channels:
+                topic = channel.topic if channel.type.name != 'voice' else "voice channel"
+                value += f"{channel.mention} - {topic}\n"
+            embed.add_field(name=category.name,
+                            value=value,
+                            inline=False)
+        return embed
+
+    @commands.command(name="getting_started")
+    @commands.is_owner()
+    async def create_getting_started(self, ctx: commands.Context,
+                                     edit_channel: Union[discord.TextChannel, commands.TextChannelConverter]):
+        overwrites = {}
+        for role in update["edit"]["roles"] + update["create"]["roles"]:
+            overwrite_role = await self.get_by_id_or_name(ctx, role, "role")
+            if overwrite_role:
+                overwrites.update({overwrite_role: discord.PermissionOverwrite(read_messages=False)})
+        overwrites.update({ctx.guild.default_role: discord.PermissionOverwrite(read_messages=True,
+                                                                               read_message_history=True)})
+
+        # Import RoleView to create role select message and send to edit channel
+        await self.create_send_roleview(ctx, edit_channel)
+        await edit_channel.edit(overwrites=overwrites)
+        # Delete old region role select
+        await edit_channel.get_partial_message(699934917378703370).delete()
+
+    async def create_send_roleview(self, ctx, edit_channel):
+        from helpers.role_select import RoleView
+        message = RoleView.create_with_ctx(ctx)
+        await edit_channel.send(embed=message.embed, view=message, file=message.file)
 
     async def edit_categories(self, ctx):
         for category in ctx.guild.categories:
@@ -416,6 +609,9 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                         create_private_threads=False, send_messages_in_threads=False,
                         use_embedded_activities=False, connect=False, send_messages=False, ban_members=False,
                         kick_members=False)})
+            for channel in category.channels:
+                await channel.edit(sync_permissions=True)
+                await asyncio.sleep(2)
             if category.overwrites == overwrites:
                 logger.info(f"Category overwrites for {category.name} already set correctly. Skipping..")
                 continue
@@ -423,7 +619,6 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             await asyncio.sleep(2)
 
     async def edit_roles(self, ctx: commands.Context):
-        lowest_role = float('inf')
         for role in update['edit']['roles']:
             edit_role = await self.get_by_id_or_name(ctx, role, "role")
             if not edit_role:
@@ -441,33 +636,32 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                     lowest_role = edit_role.position if edit_role.position < lowest_role else lowest_role
                 except Exception as e:
                     print(e)
-        lowest_role -= 1
-        for role in ctx.guild.roles:
-            if role.name in [ctx_role["name"] for ctx_role in update['create']['roles']]:
-                await role.edit(position=lowest_role if lowest_role >= 1 else 0)
-                lowest_role -= 1
 
     @commands.command(name="clear")
     @commands.is_owner()
     async def clear(self, ctx, *clear_elements):
-        if "categories" in clear_elements:
-            for cat in ctx.guild.categories:
-                logger.info(f"Removing overwrites from category {cat.name}..")
-                if cat.overwrites:
-                    await cat.edit(overwrites={})
-                logger.info(f"Overwrites removed from category {cat.name}. Sleeping for a couple seconds")
-                await asyncio.sleep(2)
-                for channel in cat.channels:
-                    logger.info(f"Removing overwrites from channel {channel.name}..")
-                    if cat.overwrites:
-                        await channel.edit(overwrites={})
-                    logger.info(f"Overwrites removed from channel {channel.name}. Sleeping for a couple seconds")
         if "roles" in clear_elements:
-            for role in ctx.guild.roles:
-                if role.is_bot_managed():
-                    logger.info(f"Role -{role.name} is bot-managed. Skipping")
-                    continue
-                await self.clear_role_perms(role)
+            await self.clear_role_permissions(ctx)
+        if "channels" in clear_elements:
+            await self.clear_channel_overwrites(ctx)
+
+    async def clear_role_permissions(self, ctx):
+        for role in ctx.guild.roles:
+            if role.is_bot_managed():
+                logger.info(f"Role -{role.name} is bot-managed. Skipping")
+                continue
+            await self.clear_role_perms(role)
+
+    async def clear_channel_overwrites(self, ctx: commands.Context):
+        for channel in ctx.guild.channels:
+            logger.info(f"Removing overwrites from channel {channel.name}..")
+            if not channel.overwrites:
+                logger.info(f"Channel {channel.name} has no overwrites. Skipping..")
+                continue
+            await channel.edit(overwrites={})
+            logger.info(f"Overwrites removed from channel {channel.name}. Sleeping for a couple seconds..")
+            await asyncio.sleep(2)
+
 
     async def copy_roles_from_server(self, copy_guild: discord.Guild, exclude_roles):
         roles = copy_guild.roles
@@ -500,6 +694,7 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                         "name": channel.name,
                         "type": channel.type.name,
                         "category": {"name": cat["name"]},
+                        "topic": channel.topic,
                         "overwrites": await self.copy_overwrites_from_buf_server(ctx, channel)
                     }
                 )
@@ -556,15 +751,16 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
         }
         for channel in channels:
             create_channel = await self.get_by_id_or_name(ctx, channel, "channel")
-            if create_channel:
+            if create_channel and create_channel.type.name == channel['type']:
                 logger.info(f"Channel - {channel['name']} - found - skipping creation")
                 continue
             func = mapping.get(channel['type'])
             if func:
                 try:
-                    category = await self.get_by_id_or_name(ctx, channel['category'], "category")
+                    category = await self.get_by_id_or_name(ctx, {"name": channel['category']}, "category")
                     await func(name=channel["name"],
-                               category=category if category else None)
+                               category=category if category else None,
+                               topic=channel.get("topic"))
                 except Exception as e:
                     logger.warning(f"Cannot create {channel['type']} channel {channel['name']}: {e}")
 
