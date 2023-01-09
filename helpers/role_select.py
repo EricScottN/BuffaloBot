@@ -16,8 +16,8 @@ class RoleSelect(discord.ui.Select):
                          placeholder="Select roles to be added/removed")
 
         if self.roles:
-            for role in self.roles:
-                self.add_option(label=role.name, value=str(role.id))
+            [self.add_option(label=role.name, value=str(role.id)) for muny in municipalities for role in self.roles if
+             muny == role.name]
 
     async def callback(self, interaction: Interaction) -> Any:
         role = interaction.guild.get_role(int(self.values[0]))
@@ -72,7 +72,8 @@ def generate_region_embed(roles):
     embed = discord.Embed(
         title="Municipality Selection",
         description="Select a municipality to gain access to the server.\n\n"
-                    "If you don't currently reside in Buffalo, you can select a Miscellaneous role."
+                    "If you don't currently reside in Buffalo, you can select `Just Visiting`. If you live close, i.e. "
+                    "Toronto, Ellicottville, Rochester, etc, you can select `Nearby`\n"
     )
     embed.set_image(url="attachment://erie_county_map.jpg")
     embed.add_field(name="Buffalo Cities and Towns",
@@ -85,16 +86,18 @@ def generate_region_embed(roles):
                     inline=False)
     embed.add_field(name="Miscellaneous",
                     value=construct_embed_values(
-                        roles, ['Nearby', 'Just Visiting'], True),
+                        roles, ['Nearby', 'Just Visiting'], True) + "\n\n**BELOW IS A MAP OF ERIE COUNTY IF YOU "
+                                                                    "NEED HELP**",
                     inline=False)
+
     return embed
 
 
 def construct_embed_values(roles: List[discord.Role], valid: List, in_list: bool):
     if in_list:
-        valid_roles = [role.name for role in roles if role.name in valid]
+        valid_roles = [f"`{role.name}`" for role in roles if role.name in valid][::-1]
     else:
-        valid_roles = [f"`{role.name}`" for role in roles if role.name not in valid]
+        valid_roles = [f"`{role.name}`" for role in roles if role.name not in valid][::-1]
     if not valid_roles:
         return "No roles found"
     return " | ".join(valid_roles)
