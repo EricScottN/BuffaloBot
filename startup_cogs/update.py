@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import json
 
@@ -111,6 +112,7 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
         await self.create_getting_started(ctx, discord.utils.find(
             lambda c: c.name == "get-started", ctx.guild.channels))
 
+        logger.info("Sending roleview to bflo-roles, as well.")
         await create_send_roleview(ctx, discord.utils.find(
             lambda c: c.name == "🪪-bflo-roles", ctx.guild.channels))
         logger.info("UPDATE COMPLETE")
@@ -127,7 +129,7 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                         [delete_role['id'] for delete_role in fowny_info['roles']]]
         for role in delete_roles:
             await role.delete()
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
             logger.info(f"Deleted role: {role.name}")
 
         delete_cats = [cat for cat in ctx.guild.categories
@@ -137,10 +139,10 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             channels = cat.channels
             for channel in channels:
                 await channel.delete()
-                await asyncio.sleep(2)
+                await asyncio.sleep(5)
                 logger.info(f"Deleted channel: {channel.name}")
             await cat.delete()
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
 
             logger.info(f"Deleted category: {cat.name}")
 
@@ -207,14 +209,20 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                 continue
             if not replace_role:
                 continue
+            logger.info(f"Found replace roles for {member.name}.. Attempting to add new role..")
             replace_dict.append({"member_id": member.id,
                                  "member_name": member.name,
                                  "member_roles": [role for role in roles]
                                  })
             await member.add_roles(replace_role)
+            logger.info(f"Successfully added {replace_role.name} to {member.name}. Sleeping..")
+            await asyncio.sleep(5)
+        logger.info(f"{replace_role.name} added to all members.. Saving replace roles to json..")
         with open('files/replaced_buffalo_roles.json', 'w') as f:
             # Write the JSON object to the file
             json.dump(replace_dict, f)
+        logger.info(f"JSON SAVED SUCCESSFULLY")
+
 
     @commands.command(name="create")
     @commands.is_owner()
@@ -245,17 +253,21 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.is_owner()
     async def create_getting_started(self, ctx: commands.Context,
                                      edit_channel: Union[discord.TextChannel, commands.TextChannelConverter]):
+        logger.info("Creating hard gate for channel with region select..")
         overwrites = {}
+        logger.info("Starting with overwrites..")
         for role in update["edit"]["roles"] + update["create"]["roles"]:
             overwrite_role = await get_by_id_or_name(ctx, role, "role")
             if overwrite_role:
                 overwrites.update({overwrite_role: discord.PermissionOverwrite(read_messages=False)})
         overwrites.update({ctx.guild.default_role: discord.PermissionOverwrite(read_messages=True,
                                                                                read_message_history=True)})
-
+        logger.info(f"Creating and sending new roleview to channel {edit_channel.name}..")
         # Import RoleView to create role select message and send to edit channel
         await create_send_roleview(ctx, edit_channel)
         await edit_channel.edit(overwrites=overwrites)
+        logger.info(f"Roleview sent and overwrites set for {edit_channel.name}.. Sleeping")
+        await asyncio.sleep(5)
         # Delete old region role select
         await edit_channel.get_partial_message(699934917378703370).delete()
 
@@ -286,11 +298,11 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                 name=name,
                 colour=colour,
                 hoist=hoist,
-                display_icon=display_icon,
+                display_icon=display_icon if 'ROLE_ICONS' in ctx.guild.features else None,
                 permissions=perms)
             logger.info(f"Role -{new_role.name}- created with id -{new_role.id}-\nSleeping for a couple seconds so I"
                         f" don't get rate limited")
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
 
 
 async def setup(bot):

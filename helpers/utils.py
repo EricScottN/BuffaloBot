@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 async def create_channel_embed(ctx: commands.Context) -> discord.Embed:
+    logger.info(f"Creating channel directoy embed..")
     embed = discord.Embed(
         title="Channel Directory"
     )
@@ -27,9 +28,10 @@ async def create_channel_embed(ctx: commands.Context) -> discord.Embed:
 
 async def sync_channel_permissions(ctx: commands.Context) -> None:
     for channel in ctx.guild.channels:
+        logger.info(f"Checking if channel {channel.name} permissions are synced..")
         if not channel.permissions_synced:
             await channel.edit(sync_permissions=True)
-
+            await asyncio.sleep(5)
 
 async def edit_channels(ctx: commands.Context) -> None:
     for channel in update["edit"]["channels"]:
@@ -55,13 +57,15 @@ async def edit_channels(ctx: commands.Context) -> None:
             logger.info(f"Moving to category -> {new_category}")
             new_channel = await edit_channel.edit(name=new_name, category=new_category, topic=new_topic,
                                                   sync_permissions=True)
+            await asyncio.sleep(5)
             logger.info(f"Successfully edited {new_channel.name} | Category - {new_channel.category}")
         except Exception as e:
             logger.warning(f"Unable to edit channel -  {e}")
-        await asyncio.sleep(2)
+        await asyncio.sleep(5)
 
 
 async def create_rules_embed() -> discord.Embed:
+    logger.info(f"Generating rules embed..")
     embed = discord.Embed(
         title="Rules",
         description="1️⃣ Be respectful of others' opinions and ideas. No Personal Attacks.\n"
@@ -84,6 +88,7 @@ async def create_rules_embed() -> discord.Embed:
 
 
 async def create_welcome_embed() -> Tuple[discord.Embed, discord.File]:
+    logger.info("Generating welcome embed..")
     embed = discord.Embed(
         title="WELCOME TO THE BUFFALO DISCORD SERVER!",
         description="Our mission statement is simple: Connect locals and transplants in the City of Good "
@@ -97,6 +102,7 @@ async def create_welcome_embed() -> Tuple[discord.Embed, discord.File]:
 
 
 async def create_staff_embed(ctx: commands.Context) -> discord.Embed:
+    logger.info(f"Creating staff embed..")
     embed = discord.Embed(
         title="Staff Members"
     )
@@ -122,8 +128,10 @@ async def create_send_roleview(ctx: commands.Context, edit_channel: discord.abc.
 
 async def edit_categories(ctx: commands.Context) -> None:
     for category in ctx.guild.categories:
+        logger.info(f"Checking category {category.name} for edit possibilities..")
         for overwrite_set in update["edit"]["categories"]:
             if overwrite_set["id"] == category.id:
+                logger.info(f"Found overwrites for {category.name}.. adding to list")
                 overwrites_list = overwrite_set["overwrites"]
                 break
         else:
@@ -137,9 +145,11 @@ async def edit_categories(ctx: commands.Context) -> None:
             role = ctx.guild.get_role(overwrite)
             if not role:
                 continue
+            logger.info(f"Role found - Allowing role to view channel")
             overwrites.update({role: discord.PermissionOverwrite(view_channel=True)})
         mute_role = discord.utils.find(lambda c: c.name == "Mute", ctx.guild.roles)
         if mute_role:
+            logger.info(f"Mute role found - Setting mute role overwrites")
             overwrites.update(
                 {mute_role: discord.PermissionOverwrite(
                     add_reactions=False, change_nickname=False, use_application_commands=False,
@@ -147,14 +157,25 @@ async def edit_categories(ctx: commands.Context) -> None:
                     create_private_threads=False, send_messages_in_threads=False,
                     use_embedded_activities=False, connect=False, send_messages=False, ban_members=False,
                     kick_members=False)})
-        for channel in category.channels:
-            await channel.edit(sync_permissions=True)
-            await asyncio.sleep(2)
+        logger.info(f"Overwrites constructed. Checking if {category.name} overwrites already set..")
         if category.overwrites == overwrites:
             logger.info(f"Category overwrites for {category.name} already set correctly. Skipping..")
             continue
+        logger.info(f"Editing {category.name} overwrites..")
         await category.edit(overwrites=overwrites)
-        await asyncio.sleep(2)
+        logger.info(f"Category {category.name} overwrites edited successfully..")
+        await asyncio.sleep(5)
+
+        logger.info(f"Checking channels in category {category.name} to make sure they are synced..")
+        for channel in category.channels:
+            logger.info(f"Checking to see if channel {channel.name} is synced..")
+            if channel.permissions_synced:
+                logger.info(f"{channel.name} is already synced - Skipping..")
+                continue
+            logger.info(f"Syncing {channel.name} permissions to category {category.name}..")
+            await channel.edit(sync_permissions=True)
+            logger.info(f"{channel.name} synced successfully. Sleeping for a bit..")
+            await asyncio.sleep(5)
 
 
 async def clear_channel_overwrites(ctx: commands.Context) -> None:
@@ -165,7 +186,7 @@ async def clear_channel_overwrites(ctx: commands.Context) -> None:
             continue
         await channel.edit(overwrites={})
         logger.info(f"Overwrites removed from channel {channel.name}. Sleeping for a couple seconds..")
-        await asyncio.sleep(2)
+        await asyncio.sleep(5)
 
 
 async def copy_roles_from_server(copy_guild: discord.Guild, exclude_roles):
@@ -204,7 +225,7 @@ permissions = {
 update = {
     "create": {
         "roles": [
-            {"id": None, "name": "Amherst", "colour": "#ff8861", "display_icon": 719580209799626812, "hoist": True},
+            {"id": None, "name": "Amherst", "colour": "#ff8861", "display_icon": "🦬", "hoist": True},
             {"id": None, "name": 'Aurora', "colour": "#c097d8", "display_icon": "🦬", "hoist": True},
             {"id": None, "name": "Buffalo", "colour": "#1a5ee6", "display_icon": 719580209799626812, "hoist": True},
             {"id": None, "name": "Cheektowaga", "colour": "#80c551", "display_icon": "🎲", "hoist": True},
@@ -382,21 +403,27 @@ region_delete_roles = [{"id": 699933697704591442, "name": "Buffalo - Allentown"}
 
 
 async def generate_welcome_embed(ctx, edit_channel: discord.TextChannel):
+    logger.info(f"Deleting old welcome messages..")
     async for message in edit_channel.history(limit=200):
         await message.delete()
-        await asyncio.sleep(2)
+        await asyncio.sleep(5)
 
     embed, file = await create_welcome_embed()
+    logger.info(f"Sending welcome embed to {edit_channel.name}..")
     await edit_channel.send(embed=embed, file=file)
-
+    await asyncio.sleep(5)
+    logger.info(f"Sending rules embed to {edit_channel.name}")
     embed = await create_rules_embed()
     await edit_channel.send(embed=embed)
-
+    await asyncio.sleep(5)
+    logger.info(f"Sending channel directory embed to {edit_channel.name}")
     embed = await create_channel_embed(ctx)
     await edit_channel.send(embed=embed)
-
+    await asyncio.sleep(5)
+    logger.info(f"Sending staff embed to {edit_channel.name}")
     embed = await create_staff_embed(ctx)
     await edit_channel.send(embed=embed)
+    await asyncio.sleep(5)
 
 
 async def get_by_id_or_name(ctx, identifier: Dict, element_type) -> Union[discord.Role | discord.abc.GuildChannel]:
@@ -418,7 +445,7 @@ async def clear_role_perms(role):
     logger.info(f"Removing permissions from role {role.name}..")
     await role.edit(permissions=discord.Permissions.none())
     logger.info(f"Removed permissions from role {role.name}. Sleeping for a couple seconds")
-    await asyncio.sleep(2)
+    await asyncio.sleep(5)
 
 
 async def validate_exists(ctx: commands.Context,
@@ -482,9 +509,13 @@ async def create_channels(channels: List[Dict[str, Any]], ctx):
         if func:
             try:
                 category = await get_by_id_or_name(ctx, {"name": channel['category']}, "category")
-                await func(name=channel["name"],
-                           category=category if category else None,
-                           topic=channel.get("topic"))
+                logger.info(f"Creating channel {channel['name']}..")
+                new_channel = await func(name=channel["name"],
+                                         category=category if category else None,
+                                         topic=channel.get("topic"))
+                logger.info(f"New channel {new_channel.name} created with id - {new_channel.id} and "
+                            f"type - {new_channel.type.name}. Sleeping..")
+                await asyncio.sleep(5)
             except Exception as e:
                 logger.warning(f"Cannot create {channel['type']} channel {channel['name']}: {e}")
 
@@ -527,8 +558,8 @@ async def create_categories(ctx: commands.Context, categories: List[Dict[str, An
                 await ctx.guild.create_category(name=name, overwrites=overwrites)
             except Exception as e:
                 print(e)
-            await asyncio.sleep(2)
-            logger.info(f"Created category - {name} -- creating channels")
+                logger.info(f"Created category - {name}.. Sleeping")
+            await asyncio.sleep(5)
         else:
             logger.info(f"Found category {name} already in {ctx.guild.name} - skipping creation "
                         f"and checking for channels")
@@ -567,6 +598,7 @@ async def clear_role_permissions(ctx):
             logger.info(f"Role -{role.name} is bot-managed. Skipping")
             continue
         await clear_role_perms(role)
+        await asyncio.sleep(5)
 
 
 async def edit_roles(ctx: commands.Context):
@@ -579,11 +611,14 @@ async def edit_roles(ctx: commands.Context):
             name = role.get("new_name", edit_role.name)
             colour = discord.Colour.from_str(role.get('colour')) if role.get('colour') else edit_role.color
             perms = role.get("permissions", None)
+            logger.info(f"Editing role {edit_role.name}")
             try:
                 await edit_role.edit(name=name,
                                      colour=colour,
                                      permissions=perms)
-                await asyncio.sleep(2)
+                logger.info(f"Role {edit_role.name} edited successfully")
+                logger.info(f"Sleeping for a few seconds..")
+                await asyncio.sleep(5)
             except Exception as e:
                 print(e)
 
@@ -592,10 +627,18 @@ async def delete_categories(ctx):
     for category in update["delete"]["categories"]:
         delete_cat = await get_by_id_or_name(ctx, category, "category")
         if delete_cat:
+            logger.info(f"Deleting category - {delete_cat.name}..")
             await delete_cat.delete()
+            logger.info(f"Category {delete_cat.name} deleted successfully.. Sleeping")
+            await asyncio.sleep(5)
 
 
 async def delete_roles(ctx):
     for role in update["delete"]["roles"]:
         delete_role = await get_by_id_or_name(ctx, role, "role")
+        if not delete_role:
+            continue
+        logger.info(f"Deleting role {delete_role.name}..")
         await delete_role.delete()
+        logger.info(f"Role {delete_role.name} deleted successfully. Sleeping..")
+        await asyncio.sleep(5)
