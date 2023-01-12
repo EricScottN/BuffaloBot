@@ -49,9 +49,10 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
 
     @commands.command(name="update")
     @commands.is_owner()
-    async def update(self, ctx: commands.Context):
-        if ctx.guild.id == ctx.bot.testing_guild_id:
+    async def update(self, ctx: commands.Context, *, delete=None):
+        if ctx.guild.id == ctx.bot.testing_guild_id and delete:
             await self.delete_from_test(ctx)
+        if ctx.guild.id == ctx.bot.testing_guild_id:
             await self.stage_testing_guild(ctx)
 
         # Clear all category and channel overwrites
@@ -65,15 +66,17 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
         # TODO Test this with display icon in Buffalo server
         # Create new region roles
         logger.info("Creating roles..")
-        await self.create_roles(ctx, update["create"]["roles"])
+        try:
+            await self.create_roles(ctx, update["create"]["roles"])
+        except Exception as e:
+            print(e)
+        # Replace Existing Buffalo role with new Buffalo role
+        logger.info("Replacing Buffalo roles with new Buffalo roles..")
+        await self.replace_buffalo_roles(ctx)
 
         # Edit existing roles
         logger.info("Editing roles..")
         await edit_roles(ctx)
-
-        # Replace Existing Buffalo role with new Buffalo role
-        logger.info("Replacing Buffalo roles with new Buffalo roles..")
-        await self.replace_buffalo_roles(ctx)
 
         # Delete categories
         logger.info("Deleting categories..")
@@ -88,7 +91,6 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
         # TODO put some logging in this function
         await edit_categories(ctx)
 
-        # TODO test this with a single forum channel in Buffalo server
         # Create new channels
         logger.info("Creating new channels..")
         await create_channels(update["create"]["channels"], ctx)
@@ -129,7 +131,7 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                         [delete_role['id'] for delete_role in fowny_info['roles']]]
         for role in delete_roles:
             await role.delete()
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
             logger.info(f"Deleted role: {role.name}")
 
         delete_cats = [cat for cat in ctx.guild.categories
@@ -139,10 +141,10 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             channels = cat.channels
             for channel in channels:
                 await channel.delete()
-                await asyncio.sleep(5)
+                await asyncio.sleep(1)
                 logger.info(f"Deleted channel: {channel.name}")
             await cat.delete()
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
 
             logger.info(f"Deleted category: {cat.name}")
 
@@ -216,13 +218,12 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                                  })
             await member.add_roles(replace_role)
             logger.info(f"Successfully added {replace_role.name} to {member.name}. Sleeping..")
-            await asyncio.sleep(5)
+            await asyncio.sleep(1)
         logger.info(f"{replace_role.name} added to all members.. Saving replace roles to json..")
         with open('files/replaced_buffalo_roles.json', 'w') as f:
             # Write the JSON object to the file
             json.dump(replace_dict, f)
         logger.info(f"JSON SAVED SUCCESSFULLY")
-
 
     @commands.command(name="create")
     @commands.is_owner()
@@ -267,9 +268,12 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
         await create_send_roleview(ctx, edit_channel)
         await edit_channel.edit(overwrites=overwrites)
         logger.info(f"Roleview sent and overwrites set for {edit_channel.name}.. Sleeping")
-        await asyncio.sleep(5)
+        await asyncio.sleep(1)
         # Delete old region role select
-        await edit_channel.get_partial_message(699934917378703370).delete()
+        try:
+            await edit_channel.get_partial_message(699934917378703370).delete()
+        except Exception as e:
+            print(e)
 
     @commands.command(name="clear")
     @commands.is_owner()
@@ -302,7 +306,12 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
                 permissions=perms)
             logger.info(f"Role -{new_role.name}- created with id -{new_role.id}-\nSleeping for a couple seconds so I"
                         f" don't get rate limited")
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
+
+    @commands.command(name="sync_channels")
+    @commands.is_owner()
+    async def sync_channel_perms(self, ctx):
+        await sync_channel_permissions(ctx)
 
 
 async def setup(bot):

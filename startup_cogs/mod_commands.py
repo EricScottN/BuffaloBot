@@ -3,6 +3,9 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context, Greedy
 from helpers.role_select import RoleView
+from helpers.utils import generate_welcome_embed
+
+
 class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
@@ -15,6 +18,14 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
             channel = ctx.channel
         message = RoleView.create_with_ctx(ctx)
         await channel.send(embed=message.embed, view=message, file=message.file)
+
+    @commands.command(name="generate_welcome_embed")
+    @commands.guild_only()
+    @commands.is_owner()
+    async def generate_welcome_embed(self, ctx: Context, *channel: commands.GuildChannelConverter):
+        if not channel:
+            channel = ctx.channel
+        await generate_welcome_embed(ctx, channel)
 
     @commands.command()
     @commands.guild_only()
