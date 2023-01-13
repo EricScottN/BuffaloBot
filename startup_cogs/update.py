@@ -56,61 +56,75 @@ class Updater(commands.Cog, command_attrs=dict(hidden=True)):
             await self.stage_testing_guild(ctx)
 
         # Clear all category and channel overwrites
+        # @buffalobot clear channels
         logger.info("Clearing category and channel overwrites..")
         await clear_channel_overwrites(ctx)
 
         # Clear all role permissions (except bot managed)
+        # @buffalobot clear roles
         logger.info("Clearing role permissions..")
         await clear_role_permissions(ctx)
 
         # TODO Test this with display icon in Buffalo server
         # Create new region roles
+        # @buffalobot create roles
         logger.info("Creating roles..")
         try:
             await self.create_roles(ctx, update["create"]["roles"])
         except Exception as e:
             print(e)
         # Replace Existing Buffalo role with new Buffalo role
+        # @buffalobot replace
         logger.info("Replacing Buffalo roles with new Buffalo roles..")
         await self.replace_buffalo_roles(ctx)
 
         # Edit existing roles
+        # @buffalobot edit roles
         logger.info("Editing roles..")
         await edit_roles(ctx)
 
         # Delete categories
+        # @buffalobot delete categories
         logger.info("Deleting categories..")
         await delete_categories(ctx)
 
         # Create new categories with overwrites
+        # @buffalobot create categories
         logger.info("Creating new categories..")
         await create_categories(ctx, update["create"]["categories"])
 
         # Update existing category overwrites
+        # @buffalobot edit categories
         logger.info("Editing existing categories..")
         # TODO put some logging in this function
         await edit_categories(ctx)
 
         # Create new channels
+        # @buffalobot create channels
         logger.info("Creating new channels..")
         await create_channels(update["create"]["channels"], ctx)
 
         # Move existing channels to correct categories (including archive)
+        # @buffalobot edit channels
         logger.info("Editing existing channels..")
         await edit_channels(ctx)
 
+        # @buffalobot sync_channels
         logger.info("Syncing channel perms..")
         await sync_channel_permissions(ctx)
 
         # Delete roles
+        # @buffalobot delete roles
         logger.info("Deleting roles..")
         await delete_roles(ctx)
 
         logger.info("Generating new welcome embed..")
+        # @buffalobot generate_welcome_embed (in channel unless passed)
         await generate_welcome_embed(ctx, discord.utils.find(
             lambda c: c.name == "📝-welcome-rules", ctx.guild.channels))
 
         logger.info("Generating new getting started..")
+        # @buffalobot getting_started
         await self.create_getting_started(ctx, discord.utils.find(
             lambda c: c.name == "get-started", ctx.guild.channels))
 

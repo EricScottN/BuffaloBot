@@ -4,6 +4,7 @@ from typing import Tuple, Dict, Union, Optional, List, Any
 
 import discord
 from discord.ext import commands
+from helpers.role_select import RoleView
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +32,21 @@ async def sync_channel_permissions(ctx: commands.Context) -> None:
         if channel.type.name == "category":
             logger.info(f"Channel {channel.name} is a category. Skipping..")
             continue
-        if channel.name == "📝-welcome-rules" or channel.name == '📯-announcements':
-            overwrites = channel.overwrites
-            for role, overwrite in overwrites.items():
-                overwrites[role].update(send_messages=False, create_private_threads=False, create_public_threads=False)
+        if channel.name == "📝-welcome-rules" or channel.name == '📯-announcements' or channel.name == '🪪-bflo-roles':
+            overwrites = await set_read_only_overwrites(channel)
             await channel.edit(overwrites=overwrites)
             continue
         if not channel.permissions_synced:
             await channel.edit(sync_permissions=True)
+
+
+async def set_read_only_overwrites(channel):
+    overwrites = channel.overwrites
+    for role, overwrite in overwrites.items():
+        if role.name == 'Admins' or role.name == 'Mods':
+            continue
+        overwrites[role].update(send_messages=False, create_private_threads=False, create_public_threads=False)
+    return overwrites
 
 
 async def edit_channels(ctx: commands.Context) -> None:
@@ -131,7 +139,6 @@ async def create_staff_embed(ctx: commands.Context) -> discord.Embed:
 
 
 async def create_send_roleview(ctx: commands.Context, edit_channel: discord.abc.GuildChannel) -> None:
-    from helpers.role_select import RoleView
     message = RoleView.create_with_ctx(ctx)
     await edit_channel.send(embed=message.embed, view=message, file=message.file)
 
@@ -169,7 +176,7 @@ async def edit_categories(ctx: commands.Context) -> None:
                     manage_events=False, manage_threads=False, create_public_threads=False,
                     create_private_threads=False, send_messages_in_threads=False,
                     use_embedded_activities=False, connect=False, send_messages=False, ban_members=False,
-                    kick_members=False)})
+                    kick_members=False, create_instant_invite=False)})
         logger.info(f"Overwrites constructed. Checking if {category.name} overwrites already set..")
         if category.overwrites == overwrites:
             logger.info(f"Category overwrites for {category.name} already set correctly. Skipping..")
