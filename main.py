@@ -42,6 +42,7 @@ class BuffaloBot(commands.Bot):
             # followed by syncing to the testing guild.
             await self.tree.sync(guild=guild)
             self.add_view(RoleView())
+            print("RoleView added")
 
     async def on_ready(self):
         print(self.db_pool)
