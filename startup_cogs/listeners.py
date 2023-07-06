@@ -1,4 +1,6 @@
 from datetime import datetime
+
+import discord
 from discord.ext import commands
 from string import punctuation
 import json
@@ -30,14 +32,10 @@ class Listeners(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message):
-        check_for = self.bot.bot_vars['DEKEMA_ID']
-        if message.author.id == check_for and \
-                any(ele in message.content for ele in ['girl', 'woman', 'women', 'date', 'dating', 'girls']):
-            mod_role = message.guild.get_role(self.bot.bot_vars['BUFFALO_MOD_ID'])
-            if mod_role:
-                await message.channel.send(f"{mod_role.mention}")
-        await self.check_for_words(message)
+    async def on_message(self, message: discord.Message):
+        check_for = self.bot.bot_vars['JIVE_ID']
+        if message.author.id == check_for:
+            await message.add_reaction("<:really:1108941725881352263>")
 
     async def check_for_words(self, message):
         for check_word in WORD_EMOJI_MAP.keys():
