@@ -37,7 +37,6 @@ class Listeners(commands.Cog):
             random_number = random.randint(1, 5)
             if random_number == 5:
                 await message.add_reaction("<:really:1108941725881352263>")
-        # VERIFY CHANGE
 
     async def check_for_words(self, message):
         for check_word in WORD_EMOJI_MAP.keys():
