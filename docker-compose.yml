@@ -14,12 +14,13 @@ services:
         restart: unless-stopped
 
     bot:
-        restart: always
+        image: ${IMAGE_NAME}:${TAG}
         build:
             context: .
             dockerfile: Dockerfile
         environment:
             - MAX_RETRIES=5
+        restart: always
 
 volumes:
   database:

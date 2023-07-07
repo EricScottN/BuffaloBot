@@ -1,5 +1,4 @@
-from datetime import datetime
-
+import random
 import discord
 from discord.ext import commands
 from string import punctuation
@@ -35,7 +34,9 @@ class Listeners(commands.Cog):
     async def on_message(self, message: discord.Message):
         check_for = self.bot.bot_vars['JIVE_ID']
         if message.author.id == check_for:
-            await message.add_reaction("<:really:1108941725881352263>")
+            random_number = random.randint(1, 5)
+            if random_number == 5:
+                await message.add_reaction("<:really:1108941725881352263>")
 
     async def check_for_words(self, message):
         for check_word in WORD_EMOJI_MAP.keys():
