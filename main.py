@@ -82,7 +82,10 @@ async def db_conn(exts, max_retries, our_client):
     sleep_time = 5
     for i in range(max_retries):
         try:
-            async with asyncpg.create_pool(host="db", user="postgres", password="password") as pool:
+            async with asyncpg.create_pool(
+                    host="db",
+                    user=os.environ['POSTGRES_USER'],
+                    password=os.environ['POSTGRES_PASSWORD']) as pool:
                 return await start_bot(exts, our_client, pool)
         except Exception as e:
             print(f"Couldn't connect to db: {e}\n\n Sleeping for {sleep_time} seconds")
