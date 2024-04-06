@@ -8,7 +8,6 @@ import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 import asyncpg
-from env import env
 
 from helpers.role_select import RoleView
 
@@ -28,7 +27,6 @@ class BuffaloBot(commands.Bot):
         self.db_pool = db_pool
         self.web_client = web_client
         self.testing_guild_id = testing_guild_id
-        self.bot_vars = env
 
     async def setup_hook(self):
         for extension in self.initial_extensions:
@@ -97,6 +95,6 @@ async def start_bot(exts, our_client, pool):
                           web_client=our_client,
                           initial_extensions=exts,
                           testing_guild_id=1021399801222397983) as bot:
-        await bot.start(env['TOKEN'])
+        await bot.start(os.environ['DISCORD_TOKEN_KEY'])
 
 asyncio.run(main())
