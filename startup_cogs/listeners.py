@@ -32,11 +32,6 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        check_for = self.bot.bot_vars['JIVE_ID']
-        if message.author.id == check_for:
-            random_number = random.randint(1, 5)
-            if random_number == 5:
-                await message.add_reaction("<:really:1108941725881352263>")
         await self.check_for_words(message)
 
     async def check_for_words(self, message: discord.Message):
