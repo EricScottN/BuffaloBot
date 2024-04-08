@@ -1,22 +1,27 @@
-import os
-import logging.handlers
+""" Main script"""
+import logging
 import asyncio
-import logging.handlers
+import os
 from typing import List, Optional
 
 import discord
 from aiohttp import ClientSession
 from discord.ext import commands
-import asyncpg
+from asyncpg import create_pool, Pool
 
+from helpers.discord_logger import setup_logging
 from helpers.role_select import RoleView
 
+logger = logging.getLogger(__name__)
 
-# comment to see if this works
+
 class BuffaloBot(commands.Bot):
+    """
+    Main Bot Class
+    """
     def __init__(self, *args,
                  initial_extensions: List[str],
-                 db_pool: asyncpg.Pool = None,
+                 db_pool: Pool,
                  web_client: ClientSession,
                  testing_guild_id: Optional[int] = None,
                  **kwargs):
@@ -29,10 +34,15 @@ class BuffaloBot(commands.Bot):
         self.testing_guild_id = testing_guild_id
 
     async def setup_hook(self):
+        """
+        Discord.py setup_hook is run before on_ready
+        """
+        # Load extensions
         for extension in self.initial_extensions:
             print(f"Extension loaded: {extension}")
             await self.load_extension(extension)
 
+        # S
         if self.testing_guild_id:
             guild = discord.Object(self.testing_guild_id)
             # We'll copy in the global commands to test with:
@@ -47,50 +57,28 @@ class BuffaloBot(commands.Bot):
         print(self.user, "is ready.")
 
 
+async def setup_db_pool():
+    try:
+        return await create_pool(
+            host=os.environ["POSTGRES_HOST"],
+            user=os.environ["POSTGRES_USER"],
+            password=os.environ["POSTGRES_PASSWORD"]
+        )
+    except Exception as e:
+        logger.warning(e)
+        return None
+
+
 async def main():
-    logger = logging.getLogger('discord')
-    logger.setLevel(logging.INFO)
-    root = logging.getLogger()
-    root.setLevel(logging.INFO)
-    handler = logging.handlers.RotatingFileHandler(
-        filename='discord.log',
-        encoding='utf-8',
-        maxBytes=32 * 1024 * 1024,  # 32 MiB
-        backupCount=5,  # Rotate through 5 files
-    )
-    dt_fmt = '%Y-%m-%d %H:%M:%S'
-    formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    root.addHandler(handler)
-
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    ch.setFormatter(formatter)
-    root.addHandler(ch)
-
-    max_retries = int(os.getenv("MAX_RETRIES", 0))
-
-    async with ClientSession() as our_client:
-        exts = ['startup_cogs.listeners', 'startup_cogs.mod_commands', 'startup_cogs.buf_commands',
-                'startup_cogs.update']
-        await db_conn(exts, max_retries, our_client)
-        await start_bot(exts, our_client, pool=None)
-
-
-async def db_conn(exts, max_retries, our_client):
-    sleep_time = 5
-    for i in range(max_retries):
-        try:
-            async with asyncpg.create_pool(
-                    host="db",
-                    user=os.environ['POSTGRES_USER'],
-                    password=os.environ['POSTGRES_PASSWORD']) as pool:
-                return await start_bot(exts, our_client, pool)
-        except Exception as e:
-            print(f"Couldn't connect to db: {e}\n\n Sleeping for {sleep_time} seconds")
-            await asyncio.sleep(5)
-            continue
+    await setup_logging()
+    extensions = ['startup_cogs.listeners', 'startup_cogs.mod_commands']
+    async with ClientSession() as client:
+        pool = await setup_db_pool()
+        if pool:
+            async with pool:
+                await start_bot(extensions, client, pool=pool)
+        else:
+            await start_bot(extensions, client, pool=None)
 
 
 async def start_bot(exts, our_client, pool):
@@ -98,6 +86,7 @@ async def start_bot(exts, our_client, pool):
                           web_client=our_client,
                           initial_extensions=exts,
                           testing_guild_id=1021399801222397983) as bot:
-        await bot.start(os.environ['DISCORD_TOKEN_KEY'])
+        await bot.start(os.environ["DISCORD_TOKEN_KEY"])
+
 
 asyncio.run(main())
