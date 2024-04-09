@@ -30,7 +30,7 @@ services:
             - DISCORD_TOKEN_KEY=${DISCORD_TOKEN_KEY}
         depends_on:
             db:
-                condition: service_started
+                condition: service_healthy
         restart: always
 
 volumes:
