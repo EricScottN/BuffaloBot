@@ -1,4 +1,5 @@
 """ Main script"""
+
 import logging
 import asyncio
 import os
@@ -19,15 +20,21 @@ class BuffaloBot(commands.Bot):
     """
     Main Bot Class
     """
-    def __init__(self, *args,
-                 initial_extensions: List[str],
-                 db_pool: Pool,
-                 web_client: ClientSession,
-                 testing_guild_id: Optional[int] = None,
-                 **kwargs):
+
+    def __init__(
+        self,
+        *args,
+        initial_extensions: List[str],
+        db_pool: Pool,
+        web_client: ClientSession,
+        testing_guild_id: Optional[int] = None,
+        **kwargs,
+    ):
         intents = discord.Intents.all()
         command_prefix = commands.when_mentioned
-        super().__init__(command_prefix=command_prefix, intents=intents, *args, **kwargs)
+        super().__init__(
+            command_prefix=command_prefix, intents=intents, *args, **kwargs
+        )
         self.initial_extensions = initial_extensions
         self.db_pool = db_pool
         self.web_client = web_client
@@ -62,7 +69,7 @@ async def setup_db_pool():
         return await create_pool(
             host=os.environ["POSTGRES_HOST"],
             user=os.environ["POSTGRES_USER"],
-            password=os.environ["POSTGRES_PASSWORD"]
+            password=os.environ["POSTGRES_PASSWORD"],
         )
     except Exception as e:
         logger.warning(e)
@@ -71,7 +78,7 @@ async def setup_db_pool():
 
 async def main():
     await setup_logging()
-    extensions = ['startup_cogs.listeners', 'startup_cogs.mod_commands']
+    extensions = ["startup_cogs.listeners", "startup_cogs.mod_commands"]
     async with ClientSession() as client:
         pool = await setup_db_pool()
         if pool:
@@ -82,10 +89,12 @@ async def main():
 
 
 async def start_bot(exts, our_client, pool):
-    async with BuffaloBot(db_pool=pool,
-                          web_client=our_client,
-                          initial_extensions=exts,
-                          testing_guild_id=1021399801222397983) as bot:
+    async with BuffaloBot(
+        db_pool=pool,
+        web_client=our_client,
+        initial_extensions=exts,
+        testing_guild_id=1021399801222397983,
+    ) as bot:
         await bot.start(os.environ["DISCORD_TOKEN_KEY"])
 
 

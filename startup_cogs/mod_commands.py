@@ -5,6 +5,7 @@ from discord.ext.commands import Context, Greedy
 from helpers.role_select import RoleView
 from helpers.utils import generate_welcome_embed
 
+
 class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
@@ -12,7 +13,9 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.command(name="generate_region_select")
     @commands.guild_only()
     @commands.is_owner()
-    async def generate_region_select(self, ctx: Context, *channel: commands.GuildChannelConverter):
+    async def generate_region_select(
+        self, ctx: Context, *channel: commands.GuildChannelConverter
+    ):
         if not channel:
             channel = ctx.channel
         message = RoleView.create_with_ctx(ctx)
@@ -21,7 +24,9 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.command(name="generate_welcome_embed")
     @commands.guild_only()
     @commands.is_owner()
-    async def generate_welcome_embed(self, ctx: Context, *channel: commands.GuildChannelConverter):
+    async def generate_welcome_embed(
+        self, ctx: Context, *channel: commands.GuildChannelConverter
+    ):
         if not channel:
             channel = ctx.channel
         await generate_welcome_embed(ctx, channel)
@@ -29,8 +34,12 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.command()
     @commands.guild_only()
     @commands.is_owner()
-    async def sync(self, ctx: Context, guilds: Greedy[discord.Object],
-                   spec: Optional[Literal["~", "*", "^", "-"]] = None) -> None:
+    async def sync(
+        self,
+        ctx: Context,
+        guilds: Greedy[discord.Object],
+        spec: Optional[Literal["~", "*", "^", "-"]] = None,
+    ) -> None:
         if not guilds:
             if spec == "~":
                 # sync current guild
