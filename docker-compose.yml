@@ -25,6 +25,7 @@ services:
             context: .
             dockerfile: Dockerfile
         environment:
+            - POSTGRES_HOST=${POSTGRES_HOST}
             - POSTGRES_USER=${POSTGRES_USER}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
             - DISCORD_TOKEN_KEY=${DISCORD_TOKEN_KEY}
