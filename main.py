@@ -8,7 +8,10 @@ from typing import List, Optional
 import discord
 from aiohttp import ClientSession
 from discord.ext import commands
-from asyncpg import create_pool, Pool
+from sqlalchemy import URL
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+
+from db.models import Base
 
 from helpers.discord_logger import setup_logging
 from helpers.role_select import RoleView
@@ -25,7 +28,7 @@ class BuffaloBot(commands.Bot):
         self,
         *args,
         initial_extensions: List[str],
-        db_pool: Pool,
+        engine: AsyncEngine,
         web_client: ClientSession,
         testing_guild_id: Optional[int] = None,
         **kwargs,
@@ -36,7 +39,7 @@ class BuffaloBot(commands.Bot):
             command_prefix=command_prefix, intents=intents, *args, **kwargs
         )
         self.initial_extensions = initial_extensions
-        self.db_pool = db_pool
+        self.engine = engine
         self.web_client = web_client
         self.testing_guild_id = testing_guild_id
 
@@ -59,17 +62,23 @@ class BuffaloBot(commands.Bot):
             self.add_view(RoleView())
             print("RoleView added")
 
+        if self.engine:
+            async with self.engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+
     async def on_ready(self):
-        print(self.db_pool)
+        print(self.engine)
         print(self.user, "is ready.")
 
 
-async def setup_db_pool():
+async def setup_db_engine():
     try:
-        return await create_pool(
-            host=os.environ["POSTGRES_HOST"],
-            user=os.environ["POSTGRES_USER"],
-            password=os.environ["POSTGRES_PASSWORD"],
+        return create_async_engine(
+            URL.create("postgresql+asyncpg",
+                       username=os.environ["POSTGRES_USER"],
+                       password=os.environ["POSTGRES_PASSWORD"],
+                       host=os.environ["POSTGRES_HOST"],
+                       database="buffalobot")
         )
     except Exception as e:
         logger.warning(e)
@@ -80,18 +89,14 @@ async def main():
     await setup_logging()
     extensions = ["startup_cogs.listeners", "startup_cogs.mod_commands"]
     async with ClientSession() as client:
-        pool = await setup_db_pool()
-        if pool:
-            async with pool:
-                await start_bot(extensions, client, pool=pool)
-        else:
-            await start_bot(extensions, client, pool=None)
+        engine = await setup_db_engine()
+        await start_bot(extensions, client, engine=engine)
 
 
-async def start_bot(exts, our_client, pool):
+async def start_bot(exts: List[str], web_client: ClientSession, engine: Optional[AsyncEngine]):
     async with BuffaloBot(
-        db_pool=pool,
-        web_client=our_client,
+        engine=engine,
+        web_client=web_client,
         initial_extensions=exts,
         testing_guild_id=1021399801222397983,
     ) as bot:
