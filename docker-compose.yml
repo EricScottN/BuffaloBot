@@ -6,10 +6,9 @@ services:
             - POSTGRES_USER=${POSTGRES_USER}
             - PGUSER=${POSTGRES_USER}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            - POSTGRES_INITDB_SCRIPT=/app/init.sql
+            - POSTGRES_DB=buffalobot
         volumes:
             - database:/var/lib/postgresql/data
-            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
         ports:
             - "5432:5432"
         healthcheck:
