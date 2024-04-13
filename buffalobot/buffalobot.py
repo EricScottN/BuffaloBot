@@ -6,9 +6,11 @@ import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 from sqlalchemy import URL
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import Session
 from db.models import Base
+
 from helpers.role_select import RoleView
 
 logger = logging.getLogger(__name__)
@@ -22,19 +24,21 @@ class BuffaloBot(commands.Bot):
     def __init__(
             self,
             *args,
-            initial_extensions: List[str],
-            engine: AsyncEngine,
             web_client: ClientSession,
-            testing_guild_id: Optional[int] = None,
+            initial_extensions: [List[str] | None],
+            session: [AsyncSession | Session | None],
+            testing_guild_id: [int | None],
             **kwargs,
     ):
-        intents = discord.Intents.all()
-        command_prefix = commands.when_mentioned
+        intents: discord.Intents = discord.Intents.all()
         super().__init__(
-            command_prefix=command_prefix, intents=intents, *args, **kwargs
+            command_prefix=commands.when_mentioned,
+            intents=intents,
+            *args,
+            **kwargs
         )
         self.initial_extensions = initial_extensions
-        self.engine = engine
+        self.session = session
         self.web_client = web_client
         self.testing_guild_id = testing_guild_id
 
@@ -57,34 +61,23 @@ class BuffaloBot(commands.Bot):
             self.add_view(RoleView())
             print("RoleView added")
 
-        if self.engine:
-            async with self.engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-
     async def on_ready(self):
         print(self.engine)
         print(self.user, "is ready.")
 
 
-async def setup_db_engine():
+async def setup_db_engine() -> [async_sessionmaker[AsyncSession] | None]:
     try:
-        return create_async_engine(
+        engine = create_async_engine(
             URL.create("postgresql+asyncpg",
                        username=os.environ["POSTGRES_USER"],
                        password=os.environ["POSTGRES_PASSWORD"],
                        host=os.environ["POSTGRES_HOST"],
                        database="buffalobot")
         )
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        return async_sessionmaker(engine, expire_on_commit=False)
     except Exception as e:
         logger.warning(e)
         return None
-
-
-async def start_bot(exts: List[str], web_client: ClientSession, engine: Optional[AsyncEngine]):
-    async with BuffaloBot(
-            engine=engine,
-            web_client=web_client,
-            initial_extensions=exts,
-            testing_guild_id=1021399801222397983,
-    ) as bot:
-        await bot.start(os.environ["DISCORD_TOKEN_KEY"])
