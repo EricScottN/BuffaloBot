@@ -1,11 +1,11 @@
-CREATE TABLE IF NOT EXISTS public.regions
+CREATE TABLE IF NOT EXISTS public.region
 (
     id serial NOT NULL,
     name text COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT regions_pk PRIMARY KEY (id)
+    CONSTRAINT region_pk PRIMARY KEY (id)
 );
 
-INSERT INTO public.regions (name)
+INSERT INTO public.region (name)
 VALUES
     ('Amherst'),
     ('Aurora'),
