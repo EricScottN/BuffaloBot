@@ -21,31 +21,29 @@ class Database(commands.Cog):
     @tasks.loop(seconds=60)
     async def init_db(self):
         await self.bot.wait_until_ready()
+
         for guild in self.bot.guilds:
             guild_model = Guild(
                 id=guild.id,
                 name=guild.name
             )
-            stmt = select(Region).options(load_only(Region.name))
-            regions = []
-            async with self.bot.session() as session:
-                result = await session.scalars(stmt).all()
-                for region in result:
-                    regions.append(region.name)
             for role in guild.roles:
-                if role in regions:
-                    region = select(Region).where(Region.name == role)
+                async with self.bot.session() as session:
+                    stmt = select(Region).where(Region.name == role.name).options(load_only(Region.name))
+                    result = await session.execute(stmt)
+                    region = result.scalars().first()
                 guild_model.roles.append(
                     Role(
                         id=role.id,
                         name=role.name,
-                        guild_id=guild.id
+                        guild_id=guild.id,
+                        region_id=region.id if region else None,
+                        region=region if region else None
                     )
                 )
             async with self.bot.session.begin() as session:
                 await session.merge(guild_model)
                 await session.commit()
-        print("Done")
 
 async def setup(bot: BuffaloBot) -> None:
     await bot.add_cog(Database(bot))
