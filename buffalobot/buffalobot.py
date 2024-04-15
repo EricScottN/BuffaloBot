@@ -62,7 +62,7 @@ class BuffaloBot(commands.Bot):
             print("RoleView added")
 
     async def on_ready(self):
-        print(self.engine)
+        print(self.session)
         print(self.user, "is ready.")
 
 
@@ -73,7 +73,8 @@ async def setup_db_engine() -> [async_sessionmaker[AsyncSession] | None]:
                        username=os.environ["POSTGRES_USER"],
                        password=os.environ["POSTGRES_PASSWORD"],
                        host=os.environ["POSTGRES_HOST"],
-                       database="buffalobot")
+                       database="buffalobot"),
+            echo=True
         )
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
