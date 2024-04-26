@@ -1,39 +1,21 @@
-from typing import Sequence
+from typing import List
 
-import discord
-from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import Guild, Role
-
-
-async def insert_roles(
-        session: AsyncSession,
-        guild: discord.Guild,
-        roles: Sequence[discord.Role]
-):
-    roles_models = [
-        Role(
-            id=role.id,
-            name=role.name,
-            guild_id=role.guild.id
-        ) for role in roles
-    ]
-    async with session.begin():
-        for role_model in roles_models:
-            await session.merge(role_model)
-        await session.commit()
+from buffalobot import BuffaloBot
+import db
 
 
-async def insert_guilds(
-        session: AsyncSession,
-        guilds: Sequence[discord.Guild]
-):
-    guilds_models = [
-        Guild(
-            id=guild.id,
-            name=guild.name
-        ) for guild in guilds
-    ]
-    async with session.begin():
-        for guild_model in guilds_models:
+async def refresh_db(bot: BuffaloBot):
+    for guild in bot.guilds:
+        guild_model = db.Guild(discord_object=guild)
+        for role in guild.roles:
+            guild_model.roles.append(db.Role(discord_object=role))
+        for channel in guild.channels:
+            guild_model.channels.append(db.Channel(discord_object=channel))
+        for category in guild.categories:
+            guild_model.categories.append(db.Category(discord_object=category))
+        for member in guild.members:
+            guild_model.members.append(db.Member(discord_object=member))
+        async with bot.session() as session:
+            assert guild_model not in session
             await session.merge(guild_model)
-        await session.commit()
+            await session.commit()
