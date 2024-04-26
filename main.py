@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 
 async def main():
     await setup_logging()
-    extensions = ["startup_cogs.listeners", "startup_cogs.mod_commands", "db.db_init"]
+    extensions = [
+        f"startup_cogs.{filename[:-3]}" for filename in os.listdir("startup_cogs") if filename.endswith(".py")
+    ]
     async with ClientSession() as client:
         session = await setup_db_engine()
         async with BuffaloBot(
