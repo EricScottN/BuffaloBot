@@ -1,49 +1,72 @@
+"""
+Module to initialize database
+"""
+
 import logging
-from discord.ext import tasks, commands
-from db.models import Guild, Role, Region
-from db.utils import insert_guilds, insert_roles
-from buffalobot import BuffaloBot
-from sqlalchemy.ext.asyncio import async_sessionmaker
+import discord
 from sqlalchemy import select
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import selectinload
+from discord.ext import tasks, commands
+from db.models import Guild, Member, Role, Category, Channel
+from buffalobot import BuffaloBot
 
 logger = logging.getLogger(__name__)
 
 
+async def upsert_guild(bot: BuffaloBot, guild: discord.Guild):
+    """
+    Unused method but provides good query methods
+    """
+    async with bot.session() as session:
+        guild_model = await session.get(
+            Guild, guild.id, options=[selectinload(Guild.members)]
+        )
+        guild_model = (
+            await session.scalars(
+                select(Guild).filter_by(id=guild.id).options(selectinload(Guild.roles))
+            )
+        ).one()
+        return guild_model
+
+
 class Database(commands.Cog):
+    """
+    Discord.py cog class
+    """
+
     def __init__(self, bot: BuffaloBot) -> None:
         self.bot = bot
         self.init_db.start()
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
+        """
+        Discord.py method for unloading Cog
+        """
         self.init_db.stop()
 
     @tasks.loop(seconds=60)
     async def init_db(self):
+        """
+        Discord.py task to refresh database on init and every 24 hours
+        """
         await self.bot.wait_until_ready()
-
         for guild in self.bot.guilds:
-            guild_model = Guild(
-                id=guild.id,
-                name=guild.name
-            )
+            guild_model = Guild(discord_object=guild)
             for role in guild.roles:
-                async with self.bot.session() as session:
-                    stmt = select(Region).where(Region.name == role.name).options(load_only(Region.name))
-                    result = await session.execute(stmt)
-                    region = result.scalars().first()
-                guild_model.roles.append(
-                    Role(
-                        id=role.id,
-                        name=role.name,
-                        guild_id=guild.id,
-                        region_id=region.id if region else None,
-                        region=region if region else None
-                    )
-                )
-            async with self.bot.session.begin() as session:
+                guild_model.roles.append(Role(discord_object=role))
+            for channel in guild.channels:
+                guild_model.channels.append(Channel(discord_object=channel))
+            for category in guild.categories:
+                guild_model.categories.append(Category(discord_object=category))
+            for member in guild.members:
+                guild_model.members.append(Member(discord_object=member))
+            async with self.bot.session() as session:
                 await session.merge(guild_model)
                 await session.commit()
 
+
 async def setup(bot: BuffaloBot) -> None:
+    """
+    Discord.py setup function to initialize Cog
+    """
     await bot.add_cog(Database(bot))
