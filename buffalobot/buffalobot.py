@@ -58,8 +58,8 @@ class BuffaloBot(commands.Bot):
             self.tree.copy_global_to(guild=guild)
             # followed by syncing to the testing guild.
             await self.tree.sync(guild=guild)
-            self.add_view(RoleView())
-            print("RoleView added")
+        self.add_view(RoleView())
+        print("RoleView added")
 
     async def on_ready(self):
         """

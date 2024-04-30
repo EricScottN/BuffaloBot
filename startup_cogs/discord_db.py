@@ -4,7 +4,7 @@ Module to initialize database
 
 import logging
 from discord.ext import tasks, commands
-from db.utils import refresh_db
+from db.utils import refresh_db, refresh_messages
 
 from buffalobot import BuffaloBot
 
@@ -26,13 +26,14 @@ class Database(commands.Cog):
         """
         self.refresh_db.stop()
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=500)
     async def refresh_db(self):
         """
         Discord.py task to refresh database on init and every 24 hours
         """
         await self.bot.wait_until_ready()
         await refresh_db(self.bot)
+        await refresh_messages(self.bot)
 
 
 async def setup(bot: BuffaloBot) -> None:

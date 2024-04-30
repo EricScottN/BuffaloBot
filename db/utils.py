@@ -1,4 +1,6 @@
 from typing import List
+from datetime import datetime, timedelta
+import discord
 
 from buffalobot import BuffaloBot
 import db
@@ -19,3 +21,13 @@ async def refresh_db(bot: BuffaloBot):
             assert guild_model not in session
             await session.merge(guild_model)
             await session.commit()
+
+
+async def refresh_messages(bot: BuffaloBot):
+    for guild in bot.guilds:
+        for channel in guild.text_channels:
+            async with bot.session() as session:
+                async for message in channel.history(after=datetime.now() - timedelta(days=90)):
+                    message_model = db.Message(discord_object=message)
+                    await session.merge(message_model)
+    await session.commit()

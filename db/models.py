@@ -16,7 +16,7 @@ from sqlalchemy import (
     Identity,
     Enum,
     Table,
-    Column,
+    Column
 )
 
 from sqlalchemy.orm import (
@@ -28,7 +28,7 @@ from sqlalchemy.orm import (
 )
 
 DOT: TypeAlias = (
-    discord.Guild | discord.Role | discord.abc.GuildChannel | discord.Member
+        discord.Guild | discord.Role | discord.abc.GuildChannel | discord.Member | discord.Message | discord.User
 )
 
 
@@ -53,6 +53,7 @@ class DiscordCommons(MappedAsDataclass, init=False):
 
     id: Mapped[discord_id_pk]
     name: Mapped[name_str]
+    is_active: Mapped[bool] = mapped_column(default=True)
 
     def __init__(self, discord_object: DOT):
         self.id: int = discord_object.id
@@ -93,13 +94,12 @@ class Role(DiscordCommons, Base):
     bot_managed: Mapped[bool]
     position: Mapped[int]
     guild_id: Mapped[guild_fk]
-    perms_value: Mapped[int] = mapped_column(BigInteger)
+    permission_id: Mapped[int] = mapped_column(BigInteger)
     region_id: Mapped[int | None] = mapped_column(ForeignKey("region.id"), default=None)
 
     # Relationships
     guild: Mapped[Guild] = relationship(back_populates="roles", default=None)
     region: Mapped[Region] = relationship(back_populates="role", default=None)
-    is_active: Mapped[bool] = mapped_column(default=True)
     members: Mapped[List[Member]] = relationship(
         secondary="member_role", back_populates="roles", default_factory=list
     )
@@ -110,7 +110,7 @@ class Role(DiscordCommons, Base):
         self.bot_managed: bool = discord_object.is_bot_managed()
         self.position: int = discord_object.position
         self.guild_id: int = discord_object.guild.id
-        self.perms_value: int = discord_object.permissions.value
+        self.permission_id: int = discord_object.permissions.value
         self.guild: Guild = Guild(discord_object=discord_object.guild)
 
     def __repr__(self) -> str:
@@ -166,8 +166,8 @@ class Channel(DiscordCommons, Base):
     )
 
     def __init__(
-        self,
-        discord_object: discord.abc.GuildChannel,
+            self,
+            discord_object: discord.abc.GuildChannel,
     ):
         super().__init__(discord_object)
         self.guild_id: int = discord_object.guild.id
@@ -185,9 +185,13 @@ class Channel(DiscordCommons, Base):
 class Member(DiscordCommons, Base):
     __tablename__ = "member"
 
-    nick: Mapped[str | None]
+    is_bot: Mapped[bool]
+    created_at: Mapped[datetime]
     display_name: Mapped[str]
+    global_name: Mapped[str | None]
+    permission_id: Mapped[int | None] = mapped_column(BigInteger)
 
+    nick: Mapped[str | None]
     roles: Mapped[List[Role]] = relationship(
         secondary="member_role", back_populates="members", default_factory=list
     )
@@ -198,17 +202,25 @@ class Member(DiscordCommons, Base):
         secondary="member_guild", back_populates="members", default_factory=list
     )
 
-    def __init__(self, discord_object: discord.Member):
+    def __init__(self, discord_object: discord.Member | discord.User):
         super().__init__(discord_object)
-        self.nick: str = discord_object.nick
+        self.is_bot: bool = discord_object.bot
+        self.created_at: datetime = discord_object.created_at.replace(tzinfo=None)
         self.display_name: str = discord_object.display_name
-        self.roles: List[Role] = [
-            Role(discord_object=role) for role in discord_object.roles
-        ]
+        self.global_name: str = discord_object.global_name
+        if isinstance(discord_object, discord.Member):
+            self.nick: str = discord_object.nick
+            self.display_name: str = discord_object.display_name
+            self.permission_id: str = discord_object.guild_permissions.value
+            self.roles: List[Role] = [
+                Role(discord_object=role) for role in discord_object.roles
+            ]
 
 
-class Message(DiscordCommons, Base):
+class Message(Base):
     __tablename__ = "message"
+
+    id: Mapped[discord_id_pk]
 
     message_len: Mapped[int]
     created_at: Mapped[datetime]
@@ -226,25 +238,50 @@ class Message(DiscordCommons, Base):
     deleted: Mapped[bool] = mapped_column(default=False)
     edited: Mapped[bool] = mapped_column(default=False)
 
+    def __init__(self, discord_object: discord.Message):
+        super().__init__()
+        self.id: int = discord_object.id
+        self.message_len: int = len(discord_object.content)
+        self.created_at: datetime = discord_object.created_at.replace(tzinfo=None)
+        self.member_id: int = discord_object.author.id
+        self.channel_id: int = discord_object.channel.id
+        self.member: Member = Member(
+            discord_object.author
+        )
+
 
 class Permission(Base):
     __tablename__ = "permission"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str | None]
-    value: Mapped[int]
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    value: Mapped[int] = mapped_column(BigInteger)
+    name: Mapped[str | None] = mapped_column(default=None)
+
+
+class MemberGuild(Base):
+    __tablename__ = "member_guild"
+
+    member_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("member.id"), primary_key=True)
+    guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("guild.id"), primary_key=True)
+
+
+class MemberRole(Base):
+    __tablename__ = "member_guild"
+
+    member_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("member.id"), primary_key=True)
+    role_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("role.id"), primary_key=True)
 
 
 member_guild = Table(
     "member_guild",
     Base.metadata,
     Column("member_id", ForeignKey("member.id"), primary_key=True),
-    Column("guild_id", ForeignKey("guild.id"), primary_key=True),
+    Column("guild_id", ForeignKey("guild.id"), primary_key=True)
 )
 
 member_role = Table(
     "member_role",
     Base.metadata,
     Column("member_id", ForeignKey("member.id"), primary_key=True),
-    Column("role_id", ForeignKey("role.id"), primary_key=True),
+    Column("role_id", ForeignKey("role.id"), primary_key=True)
 )

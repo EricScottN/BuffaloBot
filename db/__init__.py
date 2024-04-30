@@ -1,4 +1,4 @@
 """
 Init Module
 """
-from .models import Guild, Role, Member, Category, Channel
+from .models import Guild, Role, Member, Category, Channel, Message
