@@ -111,7 +111,6 @@ class Role(DiscordCommons, Base):
         self.position: int = discord_object.position
         self.guild_id: int = discord_object.guild.id
         self.permission_id: int = discord_object.permissions.value
-        self.guild: Guild = Guild(discord_object=discord_object.guild)
 
     def __repr__(self) -> str:
         return f"{self.name}"
@@ -148,7 +147,6 @@ class Category(DiscordCommons, Base):
         super().__init__(discord_object)
         self.guild_id: int = discord_object.guild.id
         self.permissions_synced: bool = discord_object.permissions_synced
-        self.guild: Guild = Guild(discord_object=discord_object.guild)
 
 
 class Channel(DiscordCommons, Base):
@@ -173,12 +171,6 @@ class Channel(DiscordCommons, Base):
         self.guild_id: int = discord_object.guild.id
         self.category_id: int = (
             discord_object.category.id if discord_object.category else None
-        )
-        self.guild: Guild = Guild(discord_object=discord_object.guild)
-        self.category: Category | None = (
-            Category(discord_object=discord_object.category)
-            if discord_object.category
-            else None
         )
 
 
@@ -212,9 +204,6 @@ class Member(DiscordCommons, Base):
             self.nick: str = discord_object.nick
             self.display_name: str = discord_object.display_name
             self.permission_id: str = discord_object.guild_permissions.value
-            self.roles: List[Role] = [
-                Role(discord_object=role) for role in discord_object.roles
-            ]
 
 
 class Message(Base):
@@ -245,9 +234,6 @@ class Message(Base):
         self.created_at: datetime = discord_object.created_at.replace(tzinfo=None)
         self.member_id: int = discord_object.author.id
         self.channel_id: int = discord_object.channel.id
-        self.member: Member = Member(
-            discord_object.author
-        )
 
 
 class Permission(Base):
@@ -256,20 +242,6 @@ class Permission(Base):
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
     value: Mapped[int] = mapped_column(BigInteger)
     name: Mapped[str | None] = mapped_column(default=None)
-
-
-class MemberGuild(Base):
-    __tablename__ = "member_guild"
-
-    member_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("member.id"), primary_key=True)
-    guild_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("guild.id"), primary_key=True)
-
-
-class MemberRole(Base):
-    __tablename__ = "member_guild"
-
-    member_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("member.id"), primary_key=True)
-    role_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("role.id"), primary_key=True)
 
 
 member_guild = Table(
