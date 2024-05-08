@@ -1,8 +1,9 @@
 """
 All SQLAlchemy related model setup
 """
+
 from __future__ import annotations
-from typing import List, TypeAlias
+from typing import List, TypeAlias, Dict, Any
 
 import discord
 from typing_extensions import Annotated
@@ -14,33 +15,35 @@ from sqlalchemy import (
     SmallInteger,
     BigInteger,
     Identity,
-    Enum,
     Table,
-    Column
+    Column,
+    func,
+    select,
+    Select
 )
+
+from sqlalchemy.dialects.postgresql import JSONB
 
 from sqlalchemy.orm import (
     DeclarativeBase,
     MappedAsDataclass,
     relationship,
     Mapped,
-    mapped_column,
+    mapped_column
 )
 
 DOT: TypeAlias = (
-        discord.Guild | discord.Role | discord.abc.GuildChannel | discord.Member | discord.Message | discord.User
+        discord.Guild
+        | discord.Role
+        | discord.abc.GuildChannel
+        | discord.Member
+        | discord.Message
+        | discord.User
 )
 
 
 class Base(DeclarativeBase, MappedAsDataclass):
     pass
-
-
-# Enum for permission values
-class PermissionEnum(Enum):
-    NONE = 0
-    ALLOW = 1
-    DENY = 2
 
 
 discord_id_pk = Annotated[int, mapped_column(BigInteger, primary_key=True)]
@@ -54,6 +57,7 @@ class DiscordCommons(MappedAsDataclass, init=False):
     id: Mapped[discord_id_pk]
     name: Mapped[name_str]
     is_active: Mapped[bool] = mapped_column(default=True)
+    etl_modified: Mapped[datetime] = mapped_column(server_default=func.now())
 
     def __init__(self, discord_object: DOT):
         self.id: int = discord_object.id
@@ -65,7 +69,6 @@ message_len = Annotated[int, mapped_column(SmallInteger)]
 discord_date = Annotated[datetime, mapped_column(Date)]
 guild_fk = Annotated[int, mapped_column(ForeignKey("guild.id"))]
 role_fk = Annotated[int, mapped_column(ForeignKey("role.id"))]
-category_fk = Annotated[int, mapped_column(ForeignKey("category.id"))]
 
 
 class Guild(DiscordCommons, Base):
@@ -75,45 +78,12 @@ class Guild(DiscordCommons, Base):
     roles: Mapped[List[Role]] = relationship(
         back_populates="guild", default_factory=list
     )
-    categories: Mapped[List[Category]] = relationship(
-        back_populates="guild", default_factory=list
-    )
     channels: Mapped[List[Channel]] = relationship(
         back_populates="guild", default_factory=list
     )
     members: Mapped[List[Member]] = relationship(
         secondary="member_guild", back_populates="guilds", default_factory=list
     )
-
-
-class Role(DiscordCommons, Base):
-    __tablename__ = "role"
-
-    # Attributes
-    color: Mapped[int]
-    bot_managed: Mapped[bool]
-    position: Mapped[int]
-    guild_id: Mapped[guild_fk]
-    permission_id: Mapped[int] = mapped_column(BigInteger)
-    region_id: Mapped[int | None] = mapped_column(ForeignKey("region.id"), default=None)
-
-    # Relationships
-    guild: Mapped[Guild] = relationship(back_populates="roles", default=None)
-    region: Mapped[Region] = relationship(back_populates="role", default=None)
-    members: Mapped[List[Member]] = relationship(
-        secondary="member_role", back_populates="roles", default_factory=list
-    )
-
-    def __init__(self, discord_object: discord.Role):
-        super().__init__(discord_object)
-        self.color: int = discord_object.color.value
-        self.bot_managed: bool = discord_object.is_bot_managed()
-        self.position: int = discord_object.position
-        self.guild_id: int = discord_object.guild.id
-        self.permission_id: int = discord_object.permissions.value
-
-    def __repr__(self) -> str:
-        return f"{self.name}"
 
 
 class Region(Base):
@@ -130,36 +100,64 @@ class Region(Base):
         return f"{self.name}"
 
 
-class Category(DiscordCommons, Base):
-    __tablename__ = "category"
+class Role(DiscordCommons, Base):
+    __tablename__ = "role"
 
     # Attributes
+    color: Mapped[int]
+    bot_managed: Mapped[bool]
+    position: Mapped[int]
     guild_id: Mapped[guild_fk]
-    permissions_synced: Mapped[bool]
+    permissions_value: Mapped[int] = mapped_column(BigInteger)
+    region_id: Mapped[int | None] = mapped_column(ForeignKey("region.id"), default=None)
 
     # Relationships
-    guild: Mapped[Guild] = relationship(back_populates="categories", default=None)
-    channels: Mapped[List[Channel]] = relationship(
-        back_populates="category", default_factory=list
+    guild: Mapped[Guild] = relationship(back_populates="roles", default=None)
+    region: Mapped[Region] = relationship(back_populates="role")
+    members: Mapped[List[Member]] = relationship(
+        secondary="member_role", back_populates="roles", default_factory=list
+    )
+    channel_overwrites: Mapped[List[RoleOverwrite]] = relationship(
+        back_populates="role"
     )
 
-    def __init__(self, discord_object: discord.CategoryChannel):
+    def __init__(self, discord_object: discord.Role):
         super().__init__(discord_object)
+        self.color: int = discord_object.color.value
+        self.bot_managed: bool = discord_object.is_bot_managed()
+        self.position: int = discord_object.position
         self.guild_id: int = discord_object.guild.id
-        self.permissions_synced: bool = discord_object.permissions_synced
+        self.permissions_value: int = discord_object.permissions.value
+        self.region_id: Select[tuple[Any]] = select(Region.id).where(Region.name == discord_object.name)
 
 
 class Channel(DiscordCommons, Base):
     __tablename__ = "channel"
 
+    id: Mapped[discord_id_pk] = mapped_column()
+
     # Attributes
     guild_id: Mapped[guild_fk]
-    category_id: Mapped[category_fk | None] = mapped_column(default=None)
+    type: Mapped[str]
+    category_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("channel.id"), default=None
+    )
 
     # Relationships
     guild: Mapped[Guild] = relationship(back_populates="channels", default=None)
-    category: Mapped[Category] = relationship(back_populates="channels", default=None)
+    channels: Mapped[List[Channel]] = relationship(
+        back_populates="category", default_factory=list
+    )
+    category: Mapped[Channel] = relationship(
+        back_populates="channels", default=None, remote_side=[id]
+    )
     messages: Mapped[List[Message]] = relationship(
+        back_populates="channel", default_factory=list
+    )
+    role_overwrites: Mapped[List[RoleOverwrite]] = relationship(
+        back_populates="channel", default_factory=list
+    )
+    member_overwrites: Mapped[List[MemberOverwrite]] = relationship(
         back_populates="channel", default_factory=list
     )
 
@@ -169,6 +167,7 @@ class Channel(DiscordCommons, Base):
     ):
         super().__init__(discord_object)
         self.guild_id: int = discord_object.guild.id
+        self.type: str = discord_object.type.name
         self.category_id: int = (
             discord_object.category.id if discord_object.category else None
         )
@@ -181,7 +180,7 @@ class Member(DiscordCommons, Base):
     created_at: Mapped[datetime]
     display_name: Mapped[str]
     global_name: Mapped[str | None]
-    permission_id: Mapped[int | None] = mapped_column(BigInteger)
+    permissions_value: Mapped[int | None] = mapped_column(BigInteger)
 
     nick: Mapped[str | None]
     roles: Mapped[List[Role]] = relationship(
@@ -193,6 +192,9 @@ class Member(DiscordCommons, Base):
     guilds: Mapped[List[Guild]] = relationship(
         secondary="member_guild", back_populates="members", default_factory=list
     )
+    channel_overwrites: Mapped[List[MemberOverwrite]] = relationship(
+        back_populates="member"
+    )
 
     def __init__(self, discord_object: discord.Member | discord.User):
         super().__init__(discord_object)
@@ -203,7 +205,7 @@ class Member(DiscordCommons, Base):
         if isinstance(discord_object, discord.Member):
             self.nick: str = discord_object.nick
             self.display_name: str = discord_object.display_name
-            self.permission_id: str = discord_object.guild_permissions.value
+            self.permissions_value: str = discord_object.guild_permissions.value
 
 
 class Message(Base):
@@ -236,6 +238,55 @@ class Message(Base):
         self.channel_id: int = discord_object.channel.id
 
 
+class MemberOverwrite(Base):
+    __tablename__ = "member_overwrite"
+
+    channel_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("channel.id"), primary_key=True
+    )
+    member_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("member.id"), primary_key=True
+    )
+    value: Mapped[Dict] = mapped_column(JSONB)
+    member: Mapped[Member] = relationship(back_populates="channel_overwrites")
+    channel: Mapped[Channel] = relationship(back_populates="member_overwrites")
+
+    def __init__(
+            self,
+            discord_member: discord.Member,
+            discord_channel: discord.abc.GuildChannel,
+            value: Dict,
+    ):
+        super().__init__()
+        self.channel_id: int = discord_channel.id
+        self.value: Dict = value
+        self.member_id: int = discord_member.id
+
+
+class RoleOverwrite(Base):
+    __tablename__ = "role_overwrite"
+    channel_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("channel.id"), primary_key=True
+    )
+    role_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("role.id"), primary_key=True
+    )
+    value: Mapped[Dict] = mapped_column(JSONB)
+    role: Mapped[Role] = relationship(back_populates="channel_overwrites")
+    channel: Mapped[Channel] = relationship(back_populates="role_overwrites")
+
+    def __init__(
+            self,
+            discord_role: discord.Role,
+            discord_channel: discord.abc.GuildChannel,
+            value: Dict,
+    ):
+        super().__init__()
+        self.channel_id: int = discord_channel.id
+        self.value: Dict = value
+        self.role_id: int = discord_role.id
+
+
 class Permission(Base):
     __tablename__ = "permission"
 
@@ -248,12 +299,12 @@ member_guild = Table(
     "member_guild",
     Base.metadata,
     Column("member_id", ForeignKey("member.id"), primary_key=True),
-    Column("guild_id", ForeignKey("guild.id"), primary_key=True)
+    Column("guild_id", ForeignKey("guild.id"), primary_key=True),
 )
 
 member_role = Table(
     "member_role",
     Base.metadata,
     Column("member_id", ForeignKey("member.id"), primary_key=True),
-    Column("role_id", ForeignKey("role.id"), primary_key=True)
+    Column("role_id", ForeignKey("role.id"), primary_key=True),
 )
