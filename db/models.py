@@ -19,7 +19,7 @@ from sqlalchemy import (
     Column,
     func,
     select,
-    Select
+    Select,
 )
 
 from sqlalchemy.dialects.postgresql import JSONB
@@ -29,16 +29,16 @@ from sqlalchemy.orm import (
     MappedAsDataclass,
     relationship,
     Mapped,
-    mapped_column
+    mapped_column,
 )
 
 DOT: TypeAlias = (
-        discord.Guild
-        | discord.Role
-        | discord.abc.GuildChannel
-        | discord.Member
-        | discord.Message
-        | discord.User
+    discord.Guild
+    | discord.Role
+    | discord.abc.GuildChannel
+    | discord.Member
+    | discord.Message
+    | discord.User
 )
 
 
@@ -128,7 +128,9 @@ class Role(DiscordCommons, Base):
         self.position: int = discord_object.position
         self.guild_id: int = discord_object.guild.id
         self.permissions_value: int = discord_object.permissions.value
-        self.region_id: Select[tuple[Any]] = select(Region.id).where(Region.name == discord_object.name)
+        self.region_id: Select[tuple[Any]] = select(Region.id).where(
+            Region.name == discord_object.name
+        )
 
 
 class Channel(DiscordCommons, Base):
@@ -162,8 +164,8 @@ class Channel(DiscordCommons, Base):
     )
 
     def __init__(
-            self,
-            discord_object: discord.abc.GuildChannel,
+        self,
+        discord_object: discord.abc.GuildChannel,
     ):
         super().__init__(discord_object)
         self.guild_id: int = discord_object.guild.id
@@ -252,10 +254,10 @@ class MemberOverwrite(Base):
     channel: Mapped[Channel] = relationship(back_populates="member_overwrites")
 
     def __init__(
-            self,
-            discord_member: discord.Member,
-            discord_channel: discord.abc.GuildChannel,
-            value: Dict,
+        self,
+        discord_member: discord.Member,
+        discord_channel: discord.abc.GuildChannel,
+        value: Dict,
     ):
         super().__init__()
         self.channel_id: int = discord_channel.id
@@ -276,10 +278,10 @@ class RoleOverwrite(Base):
     channel: Mapped[Channel] = relationship(back_populates="role_overwrites")
 
     def __init__(
-            self,
-            discord_role: discord.Role,
-            discord_channel: discord.abc.GuildChannel,
-            value: Dict,
+        self,
+        discord_role: discord.Role,
+        discord_channel: discord.abc.GuildChannel,
+        value: Dict,
     ):
         super().__init__()
         self.channel_id: int = discord_channel.id

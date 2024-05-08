@@ -8,8 +8,7 @@ import db
 
 
 async def update_guild(
-        async_session: async_sessionmaker[AsyncSession],
-        guild: discord.Guild
+    async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
 ):
     guild_model = db.Guild(discord_object=guild)
     async with async_session() as session:
@@ -19,8 +18,7 @@ async def update_guild(
 
 
 async def update_role(
-        async_session: async_sessionmaker[AsyncSession],
-        role: discord.Role
+    async_session: async_sessionmaker[AsyncSession], role: discord.Role
 ):
     role_model = db.Role(discord_object=role)
     for member in role.members:
@@ -32,8 +30,7 @@ async def update_role(
 
 
 async def update_channel(
-        async_session: async_sessionmaker[AsyncSession],
-        channel: discord.abc.GuildChannel
+    async_session: async_sessionmaker[AsyncSession], channel: discord.abc.GuildChannel
 ):
     channel_model = db.Channel(discord_object=channel)
     channel_model = await update_channel_overwrites(channel, channel_model)
@@ -61,23 +58,22 @@ async def refresh_db(bot: BuffaloBot):
 
 
 async def update_channel_overwrites(
-        channel: discord.abc.GuildChannel,
-        channel_model: db.Channel
+    channel: discord.abc.GuildChannel, channel_model: db.Channel
 ) -> db.Channel:
     for role_or_member, overwrite in channel.overwrites.items():
         value = dict(iter(overwrite))
         if isinstance(role_or_member, discord.Role):
-            channel_model.role_overwrites.append(db.RoleOverwrite(
-                discord_role=role_or_member,
-                discord_channel=channel,
-                value=value
-            ))
+            channel_model.role_overwrites.append(
+                db.RoleOverwrite(
+                    discord_role=role_or_member, discord_channel=channel, value=value
+                )
+            )
         if isinstance(role_or_member, discord.Member):
-            channel_model.member_overwrites.append(db.MemberOverwrite(
-                discord_member=role_or_member,
-                discord_channel=channel,
-                value=value
-            ))
+            channel_model.member_overwrites.append(
+                db.MemberOverwrite(
+                    discord_member=role_or_member, discord_channel=channel, value=value
+                )
+            )
     return channel_model
 
 
@@ -86,7 +82,9 @@ async def refresh_messages(bot: BuffaloBot):
         for channel in guild.text_channels:
             channel_model = db.Channel(discord_object=channel)
             async with bot.session() as session:
-                async for message in channel.history(after=datetime.now() - timedelta(days=90)):
+                async for message in channel.history(
+                    after=datetime.now() - timedelta(days=90)
+                ):
                     member_model = db.Member(discord_object=message.author)
                     message_model = db.Message(discord_object=message)
                     message_model.member = member_model
