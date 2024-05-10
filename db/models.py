@@ -20,6 +20,7 @@ from sqlalchemy import (
     func,
     select,
     Select,
+    UniqueConstraint
 )
 
 from sqlalchemy.dialects.postgresql import JSONB
@@ -33,12 +34,12 @@ from sqlalchemy.orm import (
 )
 
 DOT: TypeAlias = (
-    discord.Guild
-    | discord.Role
-    | discord.abc.GuildChannel
-    | discord.Member
-    | discord.Message
-    | discord.User
+        discord.Guild
+        | discord.Role
+        | discord.abc.GuildChannel
+        | discord.Member
+        | discord.Message
+        | discord.User
 )
 
 
@@ -109,11 +110,15 @@ class Role(DiscordCommons, Base):
     position: Mapped[int]
     guild_id: Mapped[guild_fk]
     permissions_value: Mapped[int] = mapped_column(BigInteger)
+    role_group_id: Mapped[int | None] = mapped_column(ForeignKey("role_group.id"), default=None)
     region_id: Mapped[int | None] = mapped_column(ForeignKey("region.id"), default=None)
 
     # Relationships
     guild: Mapped[Guild] = relationship(back_populates="roles", default=None)
     region: Mapped[Region] = relationship(back_populates="role")
+    role_group: Mapped[RoleGroup] = relationship(
+        back_populates="roles", default=None
+    )
     members: Mapped[List[Member]] = relationship(
         secondary="member_role", back_populates="roles", default_factory=list
     )
@@ -130,6 +135,9 @@ class Role(DiscordCommons, Base):
         self.permissions_value: int = discord_object.permissions.value
         self.region_id: Select[tuple[Any]] = select(Region.id).where(
             Region.name == discord_object.name
+        )
+        self.role_group_id: Select[tuple[Any]] = select(RoleGroup.id).where(
+            RoleGroup.permission_value == self.permissions_value
         )
 
 
@@ -164,8 +172,8 @@ class Channel(DiscordCommons, Base):
     )
 
     def __init__(
-        self,
-        discord_object: discord.abc.GuildChannel,
+            self,
+            discord_object: discord.abc.GuildChannel,
     ):
         super().__init__(discord_object)
         self.guild_id: int = discord_object.guild.id
@@ -254,10 +262,10 @@ class MemberOverwrite(Base):
     channel: Mapped[Channel] = relationship(back_populates="member_overwrites")
 
     def __init__(
-        self,
-        discord_member: discord.Member,
-        discord_channel: discord.abc.GuildChannel,
-        value: Dict,
+            self,
+            discord_member: discord.Member,
+            discord_channel: discord.abc.GuildChannel,
+            value: Dict,
     ):
         super().__init__()
         self.channel_id: int = discord_channel.id
@@ -278,10 +286,10 @@ class RoleOverwrite(Base):
     channel: Mapped[Channel] = relationship(back_populates="role_overwrites")
 
     def __init__(
-        self,
-        discord_role: discord.Role,
-        discord_channel: discord.abc.GuildChannel,
-        value: Dict,
+            self,
+            discord_role: discord.Role,
+            discord_channel: discord.abc.GuildChannel,
+            value: Dict,
     ):
         super().__init__()
         self.channel_id: int = discord_channel.id
@@ -289,12 +297,18 @@ class RoleOverwrite(Base):
         self.role_id: int = discord_role.id
 
 
-class Permission(Base):
-    __tablename__ = "permission"
+class RoleGroup(Base):
+    __tablename__ = "role_group"
 
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
-    value: Mapped[int] = mapped_column(BigInteger)
-    name: Mapped[str | None] = mapped_column(default=None)
+    name: Mapped[str]
+    permission_value: Mapped[int] = mapped_column(BigInteger)
+
+    roles: Mapped[List[Role]] = relationship(back_populates="role_group", default_factory=list)
+
+    __table_args__ = (
+        UniqueConstraint('name', 'permission_value', name='name_permissions_key'),
+    )
 
 
 member_guild = Table(
