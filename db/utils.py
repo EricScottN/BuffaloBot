@@ -80,14 +80,18 @@ async def update_channel_overwrites(
 async def refresh_messages(bot: BuffaloBot):
     for guild in bot.guilds:
         for channel in guild.text_channels:
-            channel_model = db.Channel(discord_object=channel)
-            async with bot.session() as session:
-                async for message in channel.history(
-                    after=datetime.now() - timedelta(days=90)
-                ):
-                    member_model = db.Member(discord_object=message.author)
-                    message_model = db.Message(discord_object=message)
-                    message_model.member = member_model
-                    channel_model.messages.append(message_model)
+            await update_channel_messages(bot.session, channel)
+
+
+async def update_channel_messages(
+    async_session: async_sessionmaker[AsyncSession], channel: discord.TextChannel
+):
+    channel_model = db.Channel(discord_object=channel)
+    async for message in channel.history(after=datetime.now() - timedelta(days=90)):
+        member_model = db.Member(discord_object=message.author)
+        message_model = db.Message(discord_object=message)
+        message_model.member = member_model
+        channel_model.messages.append(message_model)
+    async with async_session() as session:
+        async with session.begin():
             await session.merge(channel_model)
-            await session.commit()
