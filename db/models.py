@@ -34,12 +34,12 @@ from sqlalchemy.orm import (
 )
 
 DOT: TypeAlias = (
-    discord.Guild
-    | discord.Role
-    | discord.abc.GuildChannel
-    | discord.Member
-    | discord.Message
-    | discord.User
+        discord.Guild
+        | discord.Role
+        | discord.abc.GuildChannel
+        | discord.Member
+        | discord.Message
+        | discord.User
 )
 
 
@@ -172,8 +172,8 @@ class Channel(DiscordCommons, Base):
     )
 
     def __init__(
-        self,
-        discord_object: discord.abc.GuildChannel,
+            self,
+            discord_object: discord.abc.GuildChannel,
     ):
         super().__init__(discord_object)
         self.guild_id: int = discord_object.guild.id
@@ -262,10 +262,10 @@ class MemberOverwrite(Base):
     channel: Mapped[Channel] = relationship(back_populates="member_overwrites")
 
     def __init__(
-        self,
-        discord_member: discord.Member,
-        discord_channel: discord.abc.GuildChannel,
-        value: Dict,
+            self,
+            discord_member: discord.Member,
+            discord_channel: discord.abc.GuildChannel,
+            value: Dict,
     ):
         super().__init__()
         self.channel_id: int = discord_channel.id
@@ -286,10 +286,10 @@ class RoleOverwrite(Base):
     channel: Mapped[Channel] = relationship(back_populates="role_overwrites")
 
     def __init__(
-        self,
-        discord_role: discord.Role,
-        discord_channel: discord.abc.GuildChannel,
-        value: Dict,
+            self,
+            discord_role: discord.Role,
+            discord_channel: discord.abc.GuildChannel,
+            value: Dict,
     ):
         super().__init__()
         self.channel_id: int = discord_channel.id
@@ -311,6 +311,13 @@ class RoleGroup(Base):
     __table_args__ = (
         UniqueConstraint("name", "permission_value", name="name_permissions_key"),
     )
+
+
+class WordEmoji(Base):
+    __tablename__ = "word_emoji"
+
+    word: Mapped[str] = mapped_column(primary_key=True)
+    emoji: Mapped[str] = mapped_column(primary_key=True)
 
 
 member_guild = Table(

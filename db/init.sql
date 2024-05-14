@@ -20,6 +20,13 @@ CREATE TABLE IF NOT EXISTS public.role_group
     CONSTRAINT name_permissions_key UNIQUE (name, permission_value)
 );
 
+CREATE TABLE IF NOT EXISTS public.word_emoji
+(
+    word character varying COLLATE pg_catalog."default" NOT NULL,
+    emoji character varying COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT word_emoji_pkey PRIMARY KEY (word, emoji)
+);
+
 INSERT INTO public.region (name)
 VALUES
     ('Amherst'),
@@ -48,5 +55,11 @@ VALUES
     ('elevated', 18552215423553),
     ('mod', 28448907062215),
     ('admin', 422212465065975);
+
+INSERT INTO public.word_emoji (word, emoji)
+VALUES
+    ('tops', '<:tops:698582304297058345>'),
+    ('wegmans', '<:wegmans:698581136204496906>'),
+    ('bills', '<:bills:698581414949552229>');
 
 COMMIT;
