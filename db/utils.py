@@ -124,6 +124,10 @@ async def update_message(
 
 async def refresh_messages(bot: BuffaloBot):
     await delete_old_messages(bot.session)
+    await update_all_bot_messages(bot)
+
+
+async def update_all_bot_messages(bot):
     for guild in bot.guilds:
         await update_guild_messages(bot.session, guild)
 
