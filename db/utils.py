@@ -10,7 +10,7 @@ import db
 
 
 async def update_guild(
-        async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
+    async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
 ):
     guild_model = db.Guild(discord_object=guild)
     async with async_session() as session:
@@ -20,7 +20,7 @@ async def update_guild(
 
 
 async def update_role(
-        async_session: async_sessionmaker[AsyncSession], role: discord.Role
+    async_session: async_sessionmaker[AsyncSession], role: discord.Role
 ):
     role_model = db.Role(discord_object=role)
     for member in role.members:
@@ -32,7 +32,8 @@ async def update_role(
 
 
 async def update_channel(
-        async_session: async_sessionmaker[AsyncSession], channel: discord.abc.GuildChannel | discord.TextChannel
+    async_session: async_sessionmaker[AsyncSession],
+    channel: discord.abc.GuildChannel | discord.TextChannel,
 ):
     channel_model = db.Channel(discord_object=channel)
     channel_model = await update_channel_overwrites(channel, channel_model)
@@ -42,7 +43,9 @@ async def update_channel(
     return channel_model
 
 
-async def update_channel_messages(channel: discord.TextChannel, channel_model: db.Channel):
+async def update_channel_messages(
+    channel: discord.TextChannel, channel_model: db.Channel
+):
     async for message in channel.history(after=datetime.now() - timedelta(days=90)):
         member_model = db.Member(discord_object=message.author)
         message_model = db.Message(discord_object=message)
@@ -69,7 +72,7 @@ async def refresh_db(bot: BuffaloBot):
 
 
 async def update_channel_overwrites(
-        channel: discord.abc.GuildChannel, channel_model: db.Channel
+    channel: discord.abc.GuildChannel, channel_model: db.Channel
 ) -> db.Channel:
     for role_or_member, overwrite in channel.overwrites.items():
         value = dict(iter(overwrite))
@@ -89,26 +92,26 @@ async def update_channel_overwrites(
 
 
 async def update_guild_messages(
-        async_session: async_sessionmaker[AsyncSession],
-        guild: discord.Guild
+    async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
 ):
     for channel in guild.text_channels:
         await update_channel_message(async_session, channel)
 
 
 async def update_channel_message(
-        async_session: async_sessionmaker[AsyncSession],
-        channel: discord.TextChannel
+    async_session: async_sessionmaker[AsyncSession], channel: discord.TextChannel
 ):
     channel_model = db.Channel(discord_object=channel)
-    async for message in channel.history(after=datetime.now(timezone.utc) - timedelta(days=90), oldest_first=False):
+    async for message in channel.history(
+        after=datetime.now(timezone.utc) - timedelta(days=90), oldest_first=False
+    ):
         await update_message(async_session, channel_model, message)
 
 
 async def update_message(
-        async_session: async_sessionmaker[AsyncSession],
-        channel_model: db.Channel,
-        message: discord.Message
+    async_session: async_sessionmaker[AsyncSession],
+    channel_model: db.Channel,
+    message: discord.Message,
 ):
     member_model = db.Member(discord_object=message.author)
     message_model = db.Message(discord_object=message)
@@ -125,16 +128,18 @@ async def refresh_messages(bot: BuffaloBot):
         await update_guild_messages(bot.session, guild)
 
 
-async def delete_old_messages(
-        async_session: async_sessionmaker[AsyncSession]
-):
+async def delete_old_messages(async_session: async_sessionmaker[AsyncSession]):
     async with async_session() as session:
-        old_posts = (await session.scalars(
-            select(db.Message)
-            .where(db.Message.created_at <
-                   (datetime.now(timezone.utc) - timedelta(days=90))
-                   .replace(tzinfo=None))
-        )).all()
+        old_posts = (
+            await session.scalars(
+                select(db.Message).where(
+                    db.Message.created_at
+                    < (datetime.now(timezone.utc) - timedelta(days=90)).replace(
+                        tzinfo=None
+                    )
+                )
+            )
+        ).all()
     for post in old_posts:
         async with async_session() as session:
             async with session.begin():
