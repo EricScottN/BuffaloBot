@@ -43,17 +43,6 @@ async def update_channel(
     return channel_model
 
 
-async def update_channel_messages(
-    channel: discord.TextChannel, channel_model: db.Channel
-):
-    async for message in channel.history(after=datetime.now() - timedelta(days=90)):
-        member_model = db.Member(discord_object=message.author)
-        message_model = db.Message(discord_object=message)
-        message_model.member = member_model
-        channel_model.messages.append(message_model)
-        message_model.channel = channel_model
-
-
 async def refresh_db(bot: BuffaloBot):
     for guild in bot.guilds:
         guild_model = await update_guild(bot.session, guild)
@@ -95,24 +84,24 @@ async def update_guild_messages(
     async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
 ):
     for channel in guild.text_channels:
-        await update_channel_message(async_session, channel)
+        await update_channel_messages(async_session, channel)
 
 
-async def update_channel_message(
+async def update_channel_messages(
     async_session: async_sessionmaker[AsyncSession], channel: discord.TextChannel
 ):
-    channel_model = db.Channel(discord_object=channel)
+
     async for message in channel.history(
         after=datetime.now(timezone.utc) - timedelta(days=90), oldest_first=False
     ):
-        await update_message(async_session, channel_model, message)
+        await update_message(async_session, message)
 
 
 async def update_message(
     async_session: async_sessionmaker[AsyncSession],
-    channel_model: db.Channel,
-    message: discord.Message,
+    message: discord.Message
 ):
+    channel_model = db.Channel(discord_object=message.channel)
     member_model = db.Member(discord_object=message.author)
     message_model = db.Message(discord_object=message)
     message_model.member = member_model
@@ -122,7 +111,7 @@ async def update_message(
             await session.merge(message_model)
 
 
-async def refresh_messages(bot: BuffaloBot):
+async def refresh_all_bot_messages(bot: BuffaloBot):
     await delete_old_messages(bot.session)
     await update_all_bot_messages(bot)
 
