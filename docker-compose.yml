@@ -19,7 +19,7 @@ services:
             - "5432:5432"
         healthcheck:
             test: ["CMD-SHELL", "psql -U ${POSTGRES_USER} -d buffalobot -c 'SELECT 1;'"]
-            interval: 5s
+            interval: 10s
             retries: 5
         restart: unless-stopped
 
