@@ -15,7 +15,6 @@ services:
             - type: bind
               source: ./db/init.sql
               target: /docker-entrypoint-initdb.d/init.sql
-
         ports:
             - "5432:5432"
         healthcheck:
@@ -34,6 +33,10 @@ services:
             - POSTGRES_USER=${POSTGRES_USER}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
             - DISCORD_TOKEN_KEY=${DISCORD_TOKEN_KEY}
+        volumes:
+            - type: volume
+              source: logs
+              target: /app/logs
         depends_on:
             db:
                 condition: service_healthy
@@ -41,3 +44,4 @@ services:
 
 volumes:
   database:
+  logs:
