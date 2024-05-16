@@ -1,4 +1,4 @@
-BEGIN;
+START TRANSACTION;
 
 CREATE SEQUENCE region_id_seq;
 
