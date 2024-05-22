@@ -17,13 +17,16 @@ async def main():
     extensions = [
         f"startup_cogs.{filename[:-3]}" for filename in os.listdir("startup_cogs") if filename.endswith(".py")
     ]
+    testing_guild_id = os.getenv("TESTING_GUILD_ID")
+    if testing_guild_id:
+        testing_guild_id = int(testing_guild_id)
     async with ClientSession() as client:
         session = await setup_db_engine()
         async with BuffaloBot(
                 web_client=client,
                 initial_extensions=extensions,
                 session=session,
-                testing_guild_id=1021399801222397983
+                testing_guild_id=testing_guild_id
         ) as bot:
             await bot.start(os.environ["DISCORD_TOKEN_KEY"])
 

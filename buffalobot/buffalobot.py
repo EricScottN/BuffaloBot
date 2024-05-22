@@ -30,7 +30,7 @@ class BuffaloBot(commands.Bot):
         web_client: ClientSession,
         initial_extensions: List[str],
         session: async_sessionmaker,
-        testing_guild_id: int,
+        testing_guild_id: int | None,
         **kwargs,
     ):
         intents: discord.Intents = discord.Intents.all()
