@@ -1,9 +1,5 @@
-from datetime import datetime, timedelta, timezone
-
 import discord
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
-
-from sqlalchemy import select
 
 from buffalobot import BuffaloBot
 import db
@@ -23,8 +19,6 @@ async def update_role(
     async_session: async_sessionmaker[AsyncSession], role: discord.Role
 ):
     role_model = db.Role(discord_object=role)
-    for member in role.members:
-        role_model.members.append(db.Member(discord_object=member))
     async with async_session() as session:
         async with session.begin():
             await session.merge(role_model)
@@ -55,8 +49,6 @@ async def refresh_db(bot: BuffaloBot):
         for channel in guild.channels:
             channel_model = await update_channel(bot.session, channel)
             guild_model.channels.append(channel_model)
-        for member in guild.members:
-            guild_model.members.append(db.Member(discord_object=member))
         await update_guild(bot.session, guild)
 
 
@@ -71,69 +63,4 @@ async def update_channel_overwrites(
                     discord_role=role_or_member, discord_channel=channel, value=value
                 )
             )
-        if isinstance(role_or_member, discord.Member):
-            channel_model.member_overwrites.append(
-                db.MemberOverwrite(
-                    discord_member=role_or_member, discord_channel=channel, value=value
-                )
-            )
     return channel_model
-
-
-async def update_guild_messages(
-    async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
-):
-    for channel in guild.text_channels:
-        await update_channel_messages(async_session, channel)
-
-
-async def update_channel_messages(
-    async_session: async_sessionmaker[AsyncSession], channel: discord.TextChannel
-):
-
-    async for message in channel.history(
-        after=datetime.now(timezone.utc) - timedelta(days=90), oldest_first=False
-    ):
-        await update_message(async_session, message)
-
-
-async def update_message(
-    async_session: async_sessionmaker[AsyncSession],
-    message: discord.Message
-):
-    channel_model = db.Channel(discord_object=message.channel)
-    member_model = db.Member(discord_object=message.author)
-    message_model = db.Message(discord_object=message)
-    message_model.member = member_model
-    message_model.channel = channel_model
-    async with async_session() as session:
-        async with session.begin():
-            await session.merge(message_model)
-
-
-async def refresh_all_bot_messages(bot: BuffaloBot):
-    await delete_old_messages(bot.session)
-    await update_all_bot_messages(bot)
-
-
-async def update_all_bot_messages(bot):
-    for guild in bot.guilds:
-        await update_guild_messages(bot.session, guild)
-
-
-async def delete_old_messages(async_session: async_sessionmaker[AsyncSession]):
-    async with async_session() as session:
-        old_posts = (
-            await session.scalars(
-                select(db.Message).where(
-                    db.Message.created_at
-                    < (datetime.now(timezone.utc) - timedelta(days=90)).replace(
-                        tzinfo=None
-                    )
-                )
-            )
-        ).all()
-    for post in old_posts:
-        async with async_session() as session:
-            async with session.begin():
-                await session.delete(post)

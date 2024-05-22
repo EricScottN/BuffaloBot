@@ -15,8 +15,6 @@ from sqlalchemy import (
     SmallInteger,
     BigInteger,
     Identity,
-    Table,
-    Column,
     func,
     select,
     Select,
@@ -37,8 +35,6 @@ DOT: TypeAlias = (
         discord.Guild
         | discord.Role
         | discord.abc.GuildChannel
-        | discord.Member
-        | discord.Message
         | discord.User
 )
 
@@ -82,9 +78,6 @@ class Guild(DiscordCommons, Base):
     channels: Mapped[List[Channel]] = relationship(
         back_populates="guild", default_factory=list
     )
-    members: Mapped[List[Member]] = relationship(
-        secondary="member_guild", back_populates="guilds", default_factory=list
-    )
 
 
 class Region(Base):
@@ -119,9 +112,6 @@ class Role(DiscordCommons, Base):
     guild: Mapped[Guild] = relationship(back_populates="roles", default=None)
     region: Mapped[Region] = relationship(back_populates="role")
     role_group: Mapped[RoleGroup] = relationship(back_populates="roles", default=None)
-    members: Mapped[List[Member]] = relationship(
-        secondary="member_role", back_populates="roles", default_factory=list
-    )
     channel_overwrites: Mapped[List[RoleOverwrite]] = relationship(
         back_populates="role"
     )
@@ -161,14 +151,8 @@ class Channel(DiscordCommons, Base):
     category: Mapped[Channel] = relationship(
         back_populates="channels", default=None, remote_side=[id]
     )
-    messages: Mapped[List[Message]] = relationship(
-        back_populates="channel", default_factory=list
-    )
     role_overwrites: Mapped[List[RoleOverwrite]] = relationship(
-        back_populates="channel", default_factory=list
-    )
-    member_overwrites: Mapped[List[MemberOverwrite]] = relationship(
-        back_populates="channel", default_factory=list
+        back_populates="channel", default_factory=list, cascade='save-update, merge, delete, delete-orphan'
     )
 
     def __init__(
@@ -181,96 +165,6 @@ class Channel(DiscordCommons, Base):
         self.category_id: int = (
             discord_object.category.id if discord_object.category else None
         )
-
-
-class Member(DiscordCommons, Base):
-    __tablename__ = "member"
-
-    is_bot: Mapped[bool]
-    created_at: Mapped[datetime]
-    display_name: Mapped[str]
-    global_name: Mapped[str | None]
-    permissions_value: Mapped[int | None] = mapped_column(BigInteger)
-
-    nick: Mapped[str | None]
-    roles: Mapped[List[Role]] = relationship(
-        secondary="member_role", back_populates="members", default_factory=list
-    )
-    messages: Mapped[List[Message]] = relationship(
-        back_populates="member", default_factory=list
-    )
-    guilds: Mapped[List[Guild]] = relationship(
-        secondary="member_guild", back_populates="members", default_factory=list
-    )
-    channel_overwrites: Mapped[List[MemberOverwrite]] = relationship(
-        back_populates="member"
-    )
-
-    def __init__(self, discord_object: discord.Member | discord.User):
-        super().__init__(discord_object)
-        self.is_bot: bool = discord_object.bot
-        self.created_at: datetime = discord_object.created_at.replace(tzinfo=None)
-        self.display_name: str = discord_object.display_name
-        self.global_name: str = discord_object.global_name
-        if isinstance(discord_object, discord.Member):
-            self.nick: str = discord_object.nick
-            self.display_name: str = discord_object.display_name
-            self.permissions_value: str = discord_object.guild_permissions.value
-
-
-class Message(Base):
-    __tablename__ = "message"
-
-    id: Mapped[discord_id_pk]
-
-    message_len: Mapped[int]
-    created_at: Mapped[datetime]
-
-    member_id: Mapped[int] = mapped_column(ForeignKey("member.id"))
-    channel_id: Mapped[int] = mapped_column(ForeignKey("channel.id"))
-
-    member: Mapped[Member] = relationship(
-        back_populates="messages", default_factory=list
-    )
-    channel: Mapped[Channel] = relationship(
-        back_populates="messages", default_factory=list
-    )
-
-    deleted: Mapped[bool] = mapped_column(default=False)
-    edited: Mapped[bool] = mapped_column(default=False)
-
-    def __init__(self, discord_object: discord.Message):
-        super().__init__()
-        self.id: int = discord_object.id
-        self.message_len: int = len(discord_object.content)
-        self.created_at: datetime = discord_object.created_at.replace(tzinfo=None)
-        self.member_id: int = discord_object.author.id
-        self.channel_id: int = discord_object.channel.id
-
-
-class MemberOverwrite(Base):
-    __tablename__ = "member_overwrite"
-
-    channel_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("channel.id"), primary_key=True
-    )
-    member_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("member.id"), primary_key=True
-    )
-    value: Mapped[Dict] = mapped_column(JSONB)
-    member: Mapped[Member] = relationship(back_populates="channel_overwrites")
-    channel: Mapped[Channel] = relationship(back_populates="member_overwrites")
-
-    def __init__(
-            self,
-            discord_member: discord.Member,
-            discord_channel: discord.abc.GuildChannel,
-            value: Dict,
-    ):
-        super().__init__()
-        self.channel_id: int = discord_channel.id
-        self.value: Dict = value
-        self.member_id: int = discord_member.id
 
 
 class RoleOverwrite(Base):
@@ -318,18 +212,3 @@ class WordEmoji(Base):
 
     word: Mapped[str] = mapped_column(primary_key=True)
     emoji: Mapped[str] = mapped_column(primary_key=True)
-
-
-member_guild = Table(
-    "member_guild",
-    Base.metadata,
-    Column("member_id", ForeignKey("member.id"), primary_key=True),
-    Column("guild_id", ForeignKey("guild.id"), primary_key=True),
-)
-
-member_role = Table(
-    "member_role",
-    Base.metadata,
-    Column("member_id", ForeignKey("member.id"), primary_key=True),
-    Column("role_id", ForeignKey("role.id"), primary_key=True),
-)
