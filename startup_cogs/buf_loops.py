@@ -49,7 +49,6 @@ class BuffaloLoops(commands.Cog):
         if not features:
             return
         logger.info(f"{len(features)} alerts found..")
-        color = Color.default()
         color_map = {
             "Extreme": Color.red(),
             "Severe": Color.yellow()
@@ -62,7 +61,6 @@ class BuffaloLoops(commands.Cog):
                     or properties["status"] != "Actual"
             ):
                 continue
-
             color = color_map.get(properties["severity"])
             if not color:
                 color = Color.default()
@@ -72,6 +70,7 @@ class BuffaloLoops(commands.Cog):
                 color=color,
             )
             embed.set_footer(text=properties["id"])
+            # TODO - Create channel directory table add weather-alerts to it so it's not testing guild
             guild = self.bot.get_guild(1021399801222397983)
             channel = guild.get_channel(1242909661213098005)
             await channel.send(embed=embed)
