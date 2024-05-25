@@ -25,9 +25,8 @@ services:
 
     bot:
         image: ${IMAGE_NAME}:${TAG}
-        build:
-            context: .
-            dockerfile: Dockerfile
+        build: .
+        command: bash -c "alembic upgrade head && python3 /app/main.py"
         environment:
             - POSTGRES_HOST=${POSTGRES_HOST}
             - POSTGRES_USER=${POSTGRES_USER}
