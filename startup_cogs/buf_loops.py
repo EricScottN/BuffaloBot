@@ -1,3 +1,4 @@
+import time
 import datetime
 import logging
 from discord import Embed, Color
@@ -41,21 +42,34 @@ class BuffaloLoops(commands.Cog):
         url = 'https://api.weather.gov/alerts/active/zone/NYC029'
         async with self.bot.web_client.get(url) as response:
             if response.status != 200:
+                logger.warning(f"Bad Status Thrown: {response.status}")
+                time.sleep(60)
                 return
             features = (await response.json())["features"]
         if not features:
-            print("Working")
             return
+        logger.info(f"{len(features)} alerts found..")
+        color = Color.default()
+        color_map = {
+            "Extreme": Color.red(),
+            "Severe": Color.yellow()
+        }
         for feature in features:
             properties = feature["properties"]
-            if properties["id"] in self.sent_alerts or properties["severity"] not in ["Severe", "Extreme"]:
+            if (
+                    properties["id"] in self.sent_alerts
+                    or properties["severity"] not in ["Severe", "Extreme"]
+                    or properties["status"] != "Actual"
+            ):
                 continue
 
+            color = color_map.get(properties["severity"])
+            if not color:
+                color = Color.default()
             embed = Embed(
                 title=properties["headline"],
                 description=properties["description"],
-                color=Color.dark_red(),
-
+                color=color,
             )
             embed.set_footer(text=properties["id"])
             guild = self.bot.get_guild(1021399801222397983)
