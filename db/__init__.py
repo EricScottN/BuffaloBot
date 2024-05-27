@@ -1,4 +1,6 @@
 """
 Init Module
 """
-from .models import Guild, Role, Channel, RoleOverwrite, RoleGroup
+
+from .models.discord import *
+from .models.utility import *

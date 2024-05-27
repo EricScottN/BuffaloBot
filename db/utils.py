@@ -2,11 +2,11 @@ import discord
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 from buffalobot import BuffaloBot
-import db
+import db.models.discord
 
 
 async def update_guild(
-        async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
+    async_session: async_sessionmaker[AsyncSession], guild: discord.Guild
 ):
     guild_model = db.Guild(discord_object=guild)
     async with async_session() as session:
@@ -16,7 +16,7 @@ async def update_guild(
 
 
 async def update_role(
-        async_session: async_sessionmaker[AsyncSession], role: discord.Role
+    async_session: async_sessionmaker[AsyncSession], role: discord.Role
 ):
     role_model = db.Role(discord_object=role)
     async with async_session() as session:
@@ -26,8 +26,8 @@ async def update_role(
 
 
 async def remove_role(
-        async_session: async_sessionmaker[AsyncSession],
-        role: discord.Role,
+    async_session: async_sessionmaker[AsyncSession],
+    role: discord.Role,
 ):
     async with async_session() as session:
         async with session.begin():
@@ -37,8 +37,8 @@ async def remove_role(
 
 
 async def update_channel(
-        async_session: async_sessionmaker[AsyncSession],
-        channel: discord.abc.GuildChannel | discord.TextChannel,
+    async_session: async_sessionmaker[AsyncSession],
+    channel: discord.abc.GuildChannel | discord.TextChannel,
 ):
     channel_model = db.Channel(discord_object=channel)
     channel_model = await update_channel_overwrites(channel, channel_model)
@@ -64,7 +64,7 @@ async def refresh_db(bot: BuffaloBot):
 
 
 async def update_channel_overwrites(
-        channel: discord.abc.GuildChannel, channel_model: db.Channel
+    channel: discord.abc.GuildChannel, channel_model: db.Channel
 ) -> db.Channel:
     for role_or_member, overwrite in channel.overwrites.items():
         value = dict(iter(overwrite))
