@@ -1,6 +1,7 @@
 import time
 import datetime
 import logging
+import asyncio
 from discord import Embed, Color
 from discord.ext import tasks, commands
 
@@ -43,12 +44,11 @@ class BuffaloLoops(commands.Cog):
         async with self.bot.web_client.get(url) as response:
             if response.status != 200:
                 logger.warning(f"Bad Status Thrown: {response.status}")
-                time.sleep(60)
+                await asyncio.sleep(60)
                 return
             features = (await response.json())["features"]
         if not features:
             return
-        logger.info(f"{len(features)} alerts found..")
         color_map = {
             "Extreme": Color.red(),
             "Severe": Color.yellow()
@@ -61,6 +61,11 @@ class BuffaloLoops(commands.Cog):
                     or properties["status"] != "Actual"
             ):
                 continue
+            logger.info("Alert Found")
+            logger.info(f"Alert ID: {properties['id']}")
+            logger.info(f"Severity: {properties['severity']}")
+            logger.info(f"Headline: {properties['headline']}")
+            logger.info(f"Description: {properties['description']}")
             color = color_map.get(properties["severity"])
             if not color:
                 color = Color.default()
