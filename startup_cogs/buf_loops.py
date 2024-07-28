@@ -1,17 +1,18 @@
-import time
-import datetime
+from datetime import datetime, timezone, time, timedelta, UTC
 import logging
 import asyncio
+
 from discord import Embed, Color
 from discord.ext import tasks, commands
 
 from buffalobot import BuffaloBot
 from db.utils import refresh_db
+from helpers.bills_gdt import check_channel, GameDayThread
 
 logger = logging.getLogger(__name__)
 
-utc = datetime.timezone.utc
-refresh_db_time = datetime.time(hour=0, minute=0, tzinfo=utc)
+utc = timezone.utc
+refresh_db_time = time(hour=0, minute=0, tzinfo=utc)
 
 
 class BuffaloLoops(commands.Cog):
@@ -21,6 +22,7 @@ class BuffaloLoops(commands.Cog):
         self.loops = [self.get_wx_alerts, self.refresh_db]
         self.get_wx_alerts.start()
         self.refresh_db.start()
+        self.bills_gdt.start()
 
     async def cog_unload(self) -> None:
         """
@@ -80,6 +82,38 @@ class BuffaloLoops(commands.Cog):
             channel = guild.get_channel(1242909661213098005)
             await channel.send(embed=embed)
             self.sent_alerts.append(properties["id"])
+
+    @tasks.loop(hours=12)
+    async def bills_gdt(self):
+        await self.bot.wait_until_ready()
+        url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/2/schedule?seasontype=1'
+        async with self.bot.web_client.get(url) as response:
+            bills_schedule = (await response.json())
+            bills_events = bills_schedule["events"]
+        for event in bills_events:
+            competition = event["competitions"][0]
+            competition_status = competition['status']['type']['name']
+            if competition_status == 'STATUS_FINAL':
+                continue
+            start_datetime = event['date']
+            start_datetime = datetime.fromisoformat(start_datetime)
+            current_datetime = datetime.now(UTC)
+            thread_start = start_datetime - timedelta(hours=48)
+            if current_datetime < start_datetime and current_datetime < thread_start:
+                await asyncio.sleep((thread_start - current_datetime).seconds)
+            buffalobot_guild = self.bot.get_guild(696068936034156624)
+            gdt_channel = buffalobot_guild.get_channel(1149711107733332048)
+            if current_datetime >= thread_start:
+                await check_channel(bills_schedule, competition, gdt_channel)
+                await asyncio.sleep((start_datetime - current_datetime).seconds)
+            if current_datetime >= start_datetime:
+                game_id = event['id']
+                bills_gdt = GameDayThread(
+                    self.bot,
+                    gdt_channel,
+                    game_id
+                )
+                await bills_gdt.start()
 
 
 async def setup(bot: BuffaloBot) -> None:
