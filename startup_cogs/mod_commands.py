@@ -1,20 +1,60 @@
 from typing import Optional, Literal
+import logging
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context, Greedy
+from discord import app_commands
 from helpers.role_select import RoleView
 from helpers.utils import generate_welcome_embed
+from db.utils import refresh_db
+
+logger = logging.getLogger(__name__)
 
 
 class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
 
+    mod_group = app_commands.Group(
+        name="mod", description="Moderator slash commands"
+    )
+
+    mod_db_group = app_commands.Group(
+        name="db",
+        description="Database related commands for moderators",
+        parent=mod_group
+    )
+
+    @mod_db_group.command(name="refresh")
+    @app_commands.checks.has_any_role(
+        1246992974097940621,
+        1240344954757447690
+    )
+    async def refresh(
+            self,
+            interaction: discord.Interaction
+    ):
+        try:
+            await interaction.response.defer(
+                ephemeral=True, thinking=False
+            )
+            await refresh_db(self.bot)
+            return await interaction.followup.send(
+                "Database successfully refreshed",
+                ephemeral=True
+            )
+        except BaseException as e:
+            logger.error("Error refreshing database: %s", e)
+            return await interaction.followup.send(
+                "Error refreshing database",
+                ephemeral=True
+            )
+
     @commands.command(name="generate_region_select")
     @commands.guild_only()
     @commands.is_owner()
     async def generate_region_select(
-        self, ctx: Context, *channel: commands.GuildChannelConverter
+            self, ctx: Context, *channel: commands.GuildChannelConverter
     ):
         if not channel:
             channel = ctx.channel
@@ -25,7 +65,7 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.guild_only()
     @commands.is_owner()
     async def generate_welcome_embed(
-        self, ctx: Context, *channel: commands.GuildChannelConverter
+            self, ctx: Context, *channel: commands.GuildChannelConverter
     ):
         if not channel:
             channel = ctx.channel
@@ -35,10 +75,10 @@ class ModeratorCommands(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.guild_only()
     @commands.is_owner()
     async def sync(
-        self,
-        ctx: Context,
-        guilds: Greedy[discord.Object],
-        spec: Optional[Literal["~", "*", "^", "-"]] = None,
+            self,
+            ctx: Context,
+            guilds: Greedy[discord.Object],
+            spec: Optional[Literal["~", "*", "^", "-"]] = None,
     ) -> None:
         if not guilds:
             if spec == "~":
