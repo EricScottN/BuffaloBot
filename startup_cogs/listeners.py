@@ -45,12 +45,12 @@ class Listeners(commands.Cog):
         await self.check_real(after)
 
     @staticmethod
-    def is_lance():
+    def is_real():
         async def predicate(ctx: commands.Context):
             return ctx.author.id == 1180987464077299772
         return commands.check(predicate)
 
-    @is_lance()
+    @is_real()
     async def check_real(self, message: discord.Message):
         if "real" in message.content.lower():
             rdm = random.random()
