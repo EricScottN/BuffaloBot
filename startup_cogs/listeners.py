@@ -1,5 +1,6 @@
+import random
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from string import punctuation
 import json
 
@@ -37,6 +38,25 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         await self.check_for_words(message)
+        await self.check_real(message)
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        await self.check_real(after)
+
+    @staticmethod
+    def is_lance():
+        async def predicate(ctx: commands.Context):
+            return ctx.author.id == 1180987464077299772
+        return commands.check(predicate)
+
+    @is_lance()
+    async def check_real(self, message: discord.Message):
+        if "real" in message.content.lower():
+            rdm = random.random()
+            if rdm > 0.30:
+                return
+            await message.delete(delay=random.randint(1, 5))
 
     async def check_for_words(self, message: discord.Message):
         for check_word in WORD_EMOJI_MAP.keys():
