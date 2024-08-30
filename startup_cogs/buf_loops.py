@@ -78,8 +78,11 @@ class BuffaloLoops(commands.Cog):
             )
             embed.set_footer(text=properties["id"])
             # TODO - Create channel directory table add weather-alerts to it so it's not testing guild
-            guild = self.bot.get_guild(1021399801222397983)
-            channel = guild.get_channel(1242909661213098005)
+            channel = self.bot.get_guild(
+                1021399801222397983
+            ).get_channel(
+                1267114062404124694
+            )
             await channel.send(embed=embed)
             self.sent_alerts.append(properties["id"])
 
