@@ -47,7 +47,7 @@ class Listeners(commands.Cog):
     async def check_real(self, message: discord.Message):
         if "real" in message.content.lower() and message.author.id == 1180987464077299772:
             rdm = random.random()
-            if rdm > 0.30:
+            if rdm > 0.40:
                 return
             await message.delete(delay=random.randint(1, 5))
 
