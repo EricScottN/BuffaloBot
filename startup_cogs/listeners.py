@@ -44,15 +44,8 @@ class Listeners(commands.Cog):
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         await self.check_real(after)
 
-    @staticmethod
-    def is_real():
-        async def predicate(ctx: commands.Context):
-            return ctx.author.id == 1180987464077299772
-        return commands.check(predicate)
-
-    @is_real()
     async def check_real(self, message: discord.Message):
-        if "real" in message.content.lower():
+        if "real" in message.content.lower() and message.author.id == 1180987464077299772:
             rdm = random.random()
             if rdm > 0.30:
                 return
