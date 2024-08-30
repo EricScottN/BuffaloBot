@@ -45,7 +45,9 @@ class Listeners(commands.Cog):
         await self.check_real(after)
 
     async def check_real(self, message: discord.Message):
-        if "real" in message.content.lower() and message.author.id == 1180987464077299772:
+        if message.author.id != 1180987464077299772:
+            return
+        if "real" in message.content.lower():
             rdm = random.random()
             if rdm > 0.40:
                 return
