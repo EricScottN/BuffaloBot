@@ -1,17 +1,18 @@
-import time
-import datetime
+from datetime import timezone, time
 import logging
 import asyncio
+
 from discord import Embed, Color
 from discord.ext import tasks, commands
 
 from buffalobot import BuffaloBot
 from db.utils import refresh_db
+from helpers.bills_gdt import GameDayThread
 
 logger = logging.getLogger(__name__)
 
-utc = datetime.timezone.utc
-refresh_db_time = datetime.time(hour=0, minute=0, tzinfo=utc)
+utc = timezone.utc
+refresh_db_time = time(hour=0, minute=0, tzinfo=utc)
 
 
 class BuffaloLoops(commands.Cog):
@@ -21,6 +22,7 @@ class BuffaloLoops(commands.Cog):
         self.loops = [self.get_wx_alerts, self.refresh_db]
         self.get_wx_alerts.start()
         self.refresh_db.start()
+        self.bills_gdt.start()
 
     async def cog_unload(self) -> None:
         """
@@ -76,10 +78,32 @@ class BuffaloLoops(commands.Cog):
             )
             embed.set_footer(text=properties["id"])
             # TODO - Create channel directory table add weather-alerts to it so it's not testing guild
-            guild = self.bot.get_guild(1021399801222397983)
-            channel = guild.get_channel(1242909661213098005)
+            channel = self.bot.get_guild(
+                1021399801222397983
+            ).get_channel(
+                1267114062404124694
+            )
             await channel.send(embed=embed)
             self.sent_alerts.append(properties["id"])
+
+    @tasks.loop(hours=12)
+    async def bills_gdt(self):
+        await self.bot.wait_until_ready()
+        gdt = GameDayThread(
+            bot=self.bot,
+            team_id=7,
+            gdt_channel=self.bot.get_guild(
+                1021399801222397983
+            ).get_channel(
+                1267114062404124694
+            ),
+            channel_update_delta=48
+        )
+        await gdt.get_competition()
+        if not gdt.game:
+            return
+        await gdt.update_channel_name()
+        await gdt.start()
 
 
 async def setup(bot: BuffaloBot) -> None:
