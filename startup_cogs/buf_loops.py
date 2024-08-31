@@ -91,11 +91,11 @@ class BuffaloLoops(commands.Cog):
         await self.bot.wait_until_ready()
         gdt = GameDayThread(
             bot=self.bot,
-            team_id=7,
+            team_id=2,
             gdt_channel=self.bot.get_guild(
-                1021399801222397983
+                696068936034156624
             ).get_channel(
-                1267114062404124694
+                1149711107733332048
             ),
             channel_update_delta=48
         )
