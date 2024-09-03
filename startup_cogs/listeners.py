@@ -38,20 +38,6 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         await self.check_for_words(message)
-        await self.checker(message)
-
-    @commands.Cog.listener()
-    async def on_message_edit(self, before: discord.Message, after: discord.Message):
-        await self.checker(after)
-
-    async def checker(self, message: discord.Message):
-        if message.author.id != 1180987464077299772:
-            return
-        if "real" in message.content.lower():
-            rdm = random.random()
-            if rdm > 0.10:
-                return
-            await message.delete()
 
     async def check_for_words(self, message: discord.Message):
         for check_word in WORD_EMOJI_MAP.keys():
@@ -60,7 +46,6 @@ class Listeners(commands.Cog):
             ]:
                 reaction = WORD_EMOJI_MAP[check_word]
                 await message.add_reaction(reaction)
-
 
 async def setup(bot: BuffaloBot) -> None:
     await bot.add_cog(Listeners(bot))
