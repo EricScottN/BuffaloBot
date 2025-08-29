@@ -465,7 +465,7 @@ class GameDayThread:
                     description=event.play.text)
                 embed.set_footer(text=event.play.play_id)
                 return await self.gdt_channel.send(embed=embed)
-            if event.play.stat_yardage >= 20:
+            if event.play.stat_yardage >= 20 and event.play.play_type.type_id != '60':
                 embed = Embed(
                     title=f"EXPLOSIVE PLAY",
                     colour=discord.Colour.blue(),
