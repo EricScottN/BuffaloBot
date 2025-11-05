@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+from discord.ext.commands import Context
 
 from helpers.role_select import RoleView
 from helpers.weather import (
@@ -68,6 +69,19 @@ class BufCommands(commands.Cog, name="Buffalo Commands"):
             embed=view.embed, file=view.file, view=view, ephemeral=True
         )
 
+    @commands.command()
+    async def snow(
+            self,
+            ctx: Context
+    ) -> None:
+        snow_channel_id = 1435452713512206427
+        snow_channel = self.bot.get_channel(snow_channel_id)
+        message = ctx.message
+        await ctx.message.delete()
+        author = message.author
+        content = message.content
+        guess = f"Member {author.name} with display name {author.display_name} made the following guess: {content}"
+        await snow_channel.send(guess)
 
 async def setup(bot: BuffaloBot) -> None:
     await bot.add_cog(BufCommands(bot))
